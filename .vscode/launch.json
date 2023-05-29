@@ -1,0 +1,59 @@
+// Based on https://www.electronjs.org/docs/tutorial/debugging-vscode
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Mocha Tests",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "args": [
+        "--timeout",
+        "999999",
+        "${workspaceFolder}/test"
+      ],
+      "internalConsoleOptions": "openOnSessionStart",
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "pwa-node"
+    },
+    {
+      "name": "Mocha Tests current file",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "args": [
+        "--timeout",
+        "999999",
+        "${file}"
+      ],
+      "internalConsoleOptions": "openOnSessionStart",
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "pwa-node"
+    },
+    {
+      "name": "Debug Main Process",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceRoot}",
+      "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
+      "args": [
+        "."
+      ],
+      "outputCapture": "std"
+    },
+    {
+      "name": "Debug Main Process With Testfile",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceRoot}",
+      "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
+      "args": [
+        ".",
+        "./test/documents/testfile_utf8.md"
+      ],
+      "outputCapture": "std"
+    }
+  ]
+}

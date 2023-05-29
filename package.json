@@ -1,16 +1,28 @@
 {
-  "name": "hapless-toes-consist-q8grq",
-  "productName": "hapless-toes-consist-q8grq",
-  "description": "My Electron application description",
-  "keywords": [],
-  "main": "./main.js",
-  "version": "1.0.0",
-  "author": "Christian",
+  "name": "mdview",
+  "version": "3.0.0",
+  "description": "Standalone Markdown Viewer",
+  "keywords": [
+    "markdown",
+    "md",
+    "viewer",
+    "standalone"
+  ],
+  "homepage": "https://github.com/c3er/mdview",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/c3er/mdview.git"
+  },
+  "author": "Christian Dreier",
+  "license": "MIT",
+  "main": "app/main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "format": "prettier --write ."
   },
   "dependencies": {},
   "devDependencies": {
-    "electron": "24.4.0"
+    "electron": "24.4.0",
+    "prettier": "2.8.8"
   }
 }

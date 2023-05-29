@@ -1,2 +1,18 @@
-node_modules
-out
+node_modules/
+dist/
+
+.DS_Store
+
+package-lock.json
+*.log
+
+# Markdown Viewer's settings storage
+.storage/
+
+# For private notes
+tmp.md
+
+# See https://stackoverflow.com/a/5534865 (.gitignore exclude folder but include specific subfolder)
+!.vscode/
+.vscode/*
+!.vscode/launch.json
