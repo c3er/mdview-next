@@ -1,0 +1,16 @@
+{
+  "name": "hapless-toes-consist-q8grq",
+  "productName": "hapless-toes-consist-q8grq",
+  "description": "My Electron application description",
+  "keywords": [],
+  "main": "./main.js",
+  "version": "1.0.0",
+  "author": "Christian",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "24.4.0"
+  }
+}
