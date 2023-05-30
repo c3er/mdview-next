@@ -3,6 +3,8 @@ const path = require("path")
 const electron = require("electron")
 const ipc = require("@node-ipc/node-ipc").default
 
+const cli = require("./lib/cli")
+
 const WINDOW_WIDTH_DEFAULT = 1024
 const WINDOW_HEIGHT_DEFAULT = 768
 
@@ -57,7 +59,8 @@ function initialize(options) {
 }
 
 electron.app.whenReady().then(() => {
-    if (process.argv.includes("--test")) {
+    const cliArgs = cli.parse(process.argv)
+    if (cliArgs.isTest) {
         initialize({ withIpcConnection: false })
         return
     }

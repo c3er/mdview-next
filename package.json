@@ -79,7 +79,8 @@
     ]
   },
   "dependencies": {
-    "@node-ipc/node-ipc": "11.0.3"
+    "@node-ipc/node-ipc": "11.0.3",
+    "yargs": "17.7.2"
   },
   "devDependencies": {
     "chai": "4.3.7",
