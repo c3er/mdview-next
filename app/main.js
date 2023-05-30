@@ -59,6 +59,7 @@ function initialize(options) {
 electron.app.whenReady().then(() => {
     if (process.argv.includes("--test")) {
         initialize({ withIpcConnection: false })
+        return
     }
 
     ipc.config.id = IPC_SERVER_ID
