@@ -23,8 +23,9 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, "index.html"))
 }
 
-function initialize() {
-    if (ipcConnectionAttempts > 0) {
+function initialize(options) {
+    options = Object.assign({}, { withIpcConnection: false }, options)
+    if (options.withIpcConnection && ipcConnectionAttempts > 0) {
         ipcConnectionAttempts--
         return
     }
@@ -56,6 +57,10 @@ function initialize() {
 }
 
 electron.app.whenReady().then(() => {
+    if (process.argv.includes("--test")) {
+        initialize({ withIpcConnection: false })
+    }
+
     ipc.config.id = IPC_SERVER_ID
     ipc.config.retry = 5
     ipc.config.maxRetries = IPC_CONNECTION_ATTEMPTS
@@ -76,7 +81,7 @@ electron.app.whenReady().then(() => {
             if (err.code !== "ENOENT") {
                 throw new Error(`Unexpected IPC error occurred: ${err}`)
             }
-            initialize()
+            initialize({ withIpcConnection: true })
         })
         connection.on("app.message", data => {
             console.log("Message:", data)

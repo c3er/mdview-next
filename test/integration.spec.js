@@ -11,7 +11,7 @@ let page
 
 async function startApp() {
     const app = await electron.launch({
-        args: [path.join(__dirname, "..")],
+        args: [path.join(__dirname, ".."), "--test"],
         executablePath: electronPath,
     })
 
