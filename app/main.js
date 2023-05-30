@@ -1,9 +1,16 @@
 const path = require("path")
 
 const electron = require("electron")
+const ipc = require("@node-ipc/node-ipc").default
 
 const WINDOW_WIDTH_DEFAULT = 1024
 const WINDOW_HEIGHT_DEFAULT = 768
+
+const IPC_SERVER_ID = "mdview-server"
+const IPC_CLIENT_ID = "mdview-client"
+const IPC_CONNECTION_ATTEMPTS = 5
+
+let ipcConnectionAttempts = IPC_CONNECTION_ATTEMPTS
 
 function createWindow() {
     const mainWindow = new electron.BrowserWindow({
@@ -16,18 +23,63 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, "index.html"))
 }
 
-electron.app.whenReady().then(() => {
-    createWindow()
+function initialize() {
+    if (ipcConnectionAttempts > 0) {
+        ipcConnectionAttempts--
+        return
+    }
+
+    console.log("Initialized...")
+
+    electron.app.on("window-all-closed", () => {
+        if (process.platform !== "darwin") {
+            electron.app.quit()
+        }
+    })
 
     electron.app.on("activate", () => {
         if (electron.BrowserWindow.getAllWindows().length === 0) {
             createWindow()
         }
     })
-})
 
-electron.app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") {
-        electron.app.quit()
-    }
+    ipc.serve(() => {
+        console.log("Serving...")
+        ipc.server.on("app.message", (data, socket) => {
+            console.log("Data:", data)
+            console.log("Socket:", socket)
+        })
+    })
+
+    ipc.server.start()
+    createWindow()
+}
+
+electron.app.whenReady().then(() => {
+    ipc.config.id = IPC_SERVER_ID
+    ipc.config.retry = 5
+    ipc.config.maxRetries = IPC_CONNECTION_ATTEMPTS
+    ipc.config.silent = true
+
+    ipc.connectTo(IPC_SERVER_ID, () => {
+        const connection = ipc.of[IPC_SERVER_ID]
+        connection.on("connect", () => {
+            console.log("Connected")
+            connection.emit("app.message", {
+                id: IPC_CLIENT_ID,
+                data: "This is a test",
+            })
+            process.exit(0)
+        })
+        connection.on("error", err => {
+            // console.log("Error:", err)
+            if (err.code !== "ENOENT") {
+                throw new Error(`Unexpected IPC error occurred: ${err}`)
+            }
+            initialize()
+        })
+        connection.on("app.message", data => {
+            console.log("Message:", data)
+        })
+    })
 })

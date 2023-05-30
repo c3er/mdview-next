@@ -78,7 +78,9 @@
       }
     ]
   },
-  "dependencies": {},
+  "dependencies": {
+    "@node-ipc/node-ipc": "11.0.3"
+  },
   "devDependencies": {
     "chai": "4.3.7",
     "electron": "24.4.0",
