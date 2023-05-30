@@ -1,6 +1,8 @@
 const yargs = require("yargs/yargs")
 const yargsHelpers = require("yargs/helpers")
 
+exports.IS_MAIN_SWITCH = "--main"
+
 exports.parse = args => {
     console.debug("Raw arguments:", args)
 

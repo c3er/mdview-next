@@ -39,7 +39,8 @@
       "cwd": "${workspaceRoot}",
       "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
       "args": [
-        "."
+        ".",
+        "--main"
       ],
       "outputCapture": "std"
     },
@@ -51,7 +52,8 @@
       "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
       "args": [
         ".",
-        "./test/documents/testfile_utf8.md"
+        "./test/documents/testfile_utf8.md",
+        "--main"
       ],
       "outputCapture": "std"
     }

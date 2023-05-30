@@ -1,3 +1,5 @@
+const childProcess = require("child_process")
+const fs = require("fs")
 const path = require("path")
 
 const electron = require("electron")
@@ -25,8 +27,23 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, "index.html"))
 }
 
+function spawnMainProcess(argv) {
+    // Determine whether process was started via NPM and prepare accordingly
+    const processName = argv[0]
+    argv.shift()
+    const args = [cli.IS_MAIN_SWITCH]
+    if (processName.includes("electron")) {
+        argv.shift()
+        args.unshift(".")
+    }
+
+    childProcess.spawn(processName, args.concat(argv), { detached: true })
+    process.exit(0)
+}
+
 function initialize(options) {
-    options = Object.assign({}, { withIpcConnection: false }, options)
+    options = Object.assign({}, { withIpcConnection: false, asMainProcess: false }, options)
+
     if (options.withIpcConnection && ipcConnectionAttempts > 0) {
         ipcConnectionAttempts--
         return
@@ -46,22 +63,51 @@ function initialize(options) {
         }
     })
 
-    ipc.serve(() => {
-        console.log("Serving...")
-        ipc.server.on("app.message", (data, socket) => {
-            console.log("Data:", data)
-            console.log("Socket:", socket)
+    if (options.withIpcConnection) {
+        ipc.serve(() => {
+            console.log("Serving...")
+            ipc.server.on("app.message", (data, socket) => {
+                fs.writeFile(
+                    path.join(__dirname, "..", "app.log"),
+                    JSON.stringify(
+                        {
+                            data: data,
+                            socket: socket,
+                        },
+                        null,
+                        2,
+                    ),
+                    err => {
+                        if (err) {
+                            throw new Error(`Writing log file: ${err}`)
+                        }
+                    },
+                )
+            })
         })
-    })
 
-    ipc.server.start()
-    createWindow()
+        if (options.asMainProcess) {
+            ipc.server.start()
+            createWindow()
+        } else {
+            spawnMainProcess(process.argv)
+        }
+    } else {
+        createWindow()
+    }
+}
+
+function handleConsoleError(err) {
+    if (err.code !== "EPIPE") {
+        throw new Error(`Could not write to console: ${err}`)
+    }
+    // TODO Try to log the actual message, if not done at another place
 }
 
 electron.app.whenReady().then(() => {
     const cliArgs = cli.parse(process.argv)
     if (cliArgs.isTest) {
-        initialize({ withIpcConnection: false })
+        initialize()
         return
     }
 
@@ -85,10 +131,14 @@ electron.app.whenReady().then(() => {
             if (err.code !== "ENOENT") {
                 throw new Error(`Unexpected IPC error occurred: ${err}`)
             }
-            initialize({ withIpcConnection: true })
+            initialize({ withIpcConnection: true, asMainProcess: cliArgs.isMainProcess })
         })
         connection.on("app.message", data => {
             console.log("Message:", data)
         })
     })
 })
+
+process.stdout.on("error", handleConsoleError)
+
+process.stderr.on("error", handleConsoleError)
