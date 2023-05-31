@@ -4,14 +4,12 @@ const electron = require("electron")
 const yargs = require("yargs/yargs")
 const yargsHelpers = require("yargs/helpers")
 
+const log = require("./log")
+
 exports.IS_MAIN_SWITCH = "--main"
 
 exports.parse = args => {
-    // No logging available here.
-    // Instead, collect log messages and return them together with the result.
-    const messages = []
-
-    messages.push(["Raw arguments:", args])
+    log.debug("Raw arguments:", args)
 
     const argv = yargs(yargsHelpers.hideBin(args))
         .option("test", {
@@ -30,14 +28,13 @@ exports.parse = args => {
             default: path.join(electron.app.getPath("userData"), "logs"),
         })
         .help().argv
-    messages.push(["Parsed by Yargs:", argv])
+    log.debug("Parsed by Yargs:", argv)
 
     const parsed = {
         isTest: argv.test,
         isMainProcess: argv.main,
         logDir: argv.logDir,
     }
-    messages.push(["Parsed arguments:", parsed])
-
-    return [parsed, messages]
+    log.debug("Parsed arguments:", parsed)
+    return parsed
 }
