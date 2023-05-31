@@ -41,7 +41,9 @@ function spawnMainProcess(argv) {
         args.unshift(".")
     }
 
-    childProcess.spawn(processName, args.concat(argv), { detached: true })
+    const mainProcess = childProcess.spawn(processName, args.concat(argv), { detached: true })
+    _logger.info("Spawned main process with PID", mainProcess.pid)
+    mainProcess.unref()
     process.exit(0)
 }
 
