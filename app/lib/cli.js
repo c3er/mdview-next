@@ -4,7 +4,11 @@ const yargsHelpers = require("yargs/helpers")
 exports.IS_MAIN_SWITCH = "--main"
 
 exports.parse = args => {
-    console.debug("Raw arguments:", args)
+    // No logging available here.
+    // Instead, collect log messages and return them together with the result.
+    const messages = []
+
+    messages.push(["Raw arguments:", args])
 
     const argv = yargs(yargsHelpers.hideBin(args))
         .option("test", {
@@ -18,13 +22,13 @@ exports.parse = args => {
             default: false,
         })
         .help().argv
-    console.debug("Parsed by Yargs:", argv)
+    messages.push(["Parsed by Yargs:", argv])
 
     const parsed = {
         isTest: argv.test,
         isMainProcess: argv.main,
     }
-    console.debug("Parsed arguments:", parsed)
+    messages.push(["Parsed arguments:", parsed])
 
-    return parsed
+    return [parsed, messages]
 }

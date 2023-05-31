@@ -6,8 +6,9 @@ dist/
 package-lock.json
 *.log
 
-# Markdown Viewer's settings storage
+# Markdown Viewer specific
 .storage/
+logs/
 
 # For private notes
 tmp.md

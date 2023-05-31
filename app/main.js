@@ -1,11 +1,13 @@
 const childProcess = require("child_process")
-const fs = require("fs")
 const path = require("path")
 
 const electron = require("electron")
 const ipc = require("@node-ipc/node-ipc").default
+const log = require("electron-log")
 
 const cli = require("./lib/cli")
+
+const APPLICATION_DIR = path.join(__dirname, "..")
 
 const WINDOW_WIDTH_DEFAULT = 1024
 const WINDOW_HEIGHT_DEFAULT = 768
@@ -14,7 +16,8 @@ const IPC_SERVER_ID = "mdview-server"
 const IPC_CLIENT_ID = "mdview-client"
 const IPC_CONNECTION_ATTEMPTS = 5
 
-let ipcConnectionAttempts = IPC_CONNECTION_ATTEMPTS
+let _ipcConnectionAttempts = IPC_CONNECTION_ATTEMPTS
+let _logger
 
 function createWindow() {
     const mainWindow = new electron.BrowserWindow({
@@ -41,15 +44,27 @@ function spawnMainProcess(argv) {
     process.exit(0)
 }
 
+function initLogger(debugMessages) {
+    log.transports.console = false
+    log.transports.file.format = "[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{scope}] [{level}] {text}"
+    log.transports.file.resolvePath = () => path.join(APPLICATION_DIR, "logs", "main.log")
+
+    const logger = log.scope(process.pid.toString())
+    for (const message of debugMessages) {
+        logger.debug(...message)
+    }
+    return logger
+}
+
 function initialize(options) {
     options = Object.assign({}, { withIpcConnection: false, asMainProcess: false }, options)
 
-    if (options.withIpcConnection && ipcConnectionAttempts > 0) {
-        ipcConnectionAttempts--
+    if (options.withIpcConnection && _ipcConnectionAttempts > 0) {
+        _ipcConnectionAttempts--
         return
     }
 
-    console.log("Initialized...")
+    _logger.debug("Initializing...")
 
     electron.app.on("window-all-closed", () => {
         if (process.platform !== "darwin") {
@@ -65,24 +80,10 @@ function initialize(options) {
 
     if (options.withIpcConnection) {
         ipc.serve(() => {
-            console.log("Serving...")
+            _logger.debug("Serving...")
             ipc.server.on("app.message", (data, socket) => {
-                fs.writeFile(
-                    path.join(__dirname, "..", "app.log"),
-                    JSON.stringify(
-                        {
-                            data: data,
-                            socket: socket,
-                        },
-                        null,
-                        2,
-                    ),
-                    err => {
-                        if (err) {
-                            throw new Error(`Writing log file: ${err}`)
-                        }
-                    },
-                )
+                _logger.debug("Data:", data)
+                _logger.debug("Socket:", socket)
             })
         })
 
@@ -99,13 +100,14 @@ function initialize(options) {
 
 function handleConsoleError(err) {
     if (err.code !== "EPIPE") {
-        throw new Error(`Could not write to console: ${err}`)
+        throw new Error(`Could not write to log: ${err}`)
     }
     // TODO Try to log the actual message, if not done at another place
 }
 
 electron.app.whenReady().then(() => {
-    const cliArgs = cli.parse(process.argv)
+    const [cliArgs, messages] = cli.parse(process.argv)
+    _logger = initLogger(messages)
     if (cliArgs.isTest) {
         initialize()
         return
@@ -119,7 +121,7 @@ electron.app.whenReady().then(() => {
     ipc.connectTo(IPC_SERVER_ID, () => {
         const connection = ipc.of[IPC_SERVER_ID]
         connection.on("connect", () => {
-            console.log("Connected")
+            _logger.debug("Connected")
             connection.emit("app.message", {
                 id: IPC_CLIENT_ID,
                 data: "This is a test",
@@ -127,14 +129,14 @@ electron.app.whenReady().then(() => {
             process.exit(0)
         })
         connection.on("error", err => {
-            // console.log("Error:", err)
+            // _logger.debug("Error:", err)
             if (err.code !== "ENOENT") {
                 throw new Error(`Unexpected IPC error occurred: ${err}`)
             }
             initialize({ withIpcConnection: true, asMainProcess: cliArgs.isMainProcess })
         })
         connection.on("app.message", data => {
-            console.log("Message:", data)
+            _logger.debug("Message:", data)
         })
     })
 })
