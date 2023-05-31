@@ -64,21 +64,7 @@ function initLogger(debugMessages, options) {
     return logger
 }
 
-function initialize(options) {
-    options = Object.assign({}, { withIpcConnection: false, asMainProcess: false }, options)
-
-    if (options.withIpcConnection && _ipcConnectionAttempts > 0) {
-        _ipcConnectionAttempts--
-        return
-    }
-
-    const isMainProcess = options.asMainProcess
-    if (isMainProcess) {
-        _logger.info("Starting as main process...")
-    } else {
-        _logger.info("Directly called; starting main process...")
-    }
-
+function initElectron() {
     electron.app.on("window-all-closed", () => {
         if (process.platform !== "darwin") {
             _logger.info("Stopping...")
@@ -91,24 +77,15 @@ function initialize(options) {
             createWindow()
         }
     })
+}
 
-    if (options.withIpcConnection) {
-        ipc.serve(() => {
-            ipc.server.on("app.message", data => {
-                _logger.debug("Data:", data)
-            })
+function initIpc() {
+    ipc.serve(() => {
+        ipc.server.on("app.message", data => {
+            _logger.debug("Data:", data)
         })
-
-        if (isMainProcess) {
-            ipc.server.start()
-            createWindow()
-            _logger.info("Started")
-        } else {
-            spawnMainProcess(process.argv)
-        }
-    } else {
-        createWindow()
-    }
+    })
+    ipc.server.start()
 }
 
 function handleConsoleError(err) {
@@ -121,7 +98,9 @@ electron.app.whenReady().then(() => {
     const [cliArgs, messages] = cli.parse(process.argv)
     _logger = initLogger(messages, { logDir: cliArgs.logDir })
     if (cliArgs.isTest) {
-        initialize()
+        _logger.debug("Called in test mode...")
+        initElectron()
+        createWindow()
         return
     }
 
@@ -151,7 +130,18 @@ electron.app.whenReady().then(() => {
             if (err.code !== "ENOENT") {
                 throw new Error(`Unexpected IPC error occurred: ${err}`)
             }
-            initialize({ withIpcConnection: true, asMainProcess: cliArgs.isMainProcess })
+
+            if (_ipcConnectionAttempts > 0) {
+                _ipcConnectionAttempts--
+            } else if (cliArgs.isMainProcess) {
+                _logger.info("Starting as main process")
+                initIpc()
+                initElectron()
+                createWindow()
+            } else {
+                _logger.info("Directly called; starting main process...")
+                spawnMainProcess(process.argv)
+            }
         })
 
         connection.on("app.message", data => {
