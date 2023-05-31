@@ -70,10 +70,16 @@ function initialize(options) {
         return
     }
 
-    _logger.debug("Initializing...")
+    const isMainProcess = options.asMainProcess
+    if (isMainProcess) {
+        _logger.info("Starting as main process...")
+    } else {
+        _logger.info("Directly called; starting main process...")
+    }
 
     electron.app.on("window-all-closed", () => {
         if (process.platform !== "darwin") {
+            _logger.info("Stopping...")
             electron.app.quit()
         }
     })
@@ -86,16 +92,15 @@ function initialize(options) {
 
     if (options.withIpcConnection) {
         ipc.serve(() => {
-            _logger.debug("Serving...")
-            ipc.server.on("app.message", (data, socket) => {
+            ipc.server.on("app.message", data => {
                 _logger.debug("Data:", data)
-                _logger.debug("Socket:", socket)
             })
         })
 
-        if (options.asMainProcess) {
+        if (isMainProcess) {
             ipc.server.start()
             createWindow()
+            _logger.info("Started")
         } else {
             spawnMainProcess(process.argv)
         }
@@ -125,14 +130,20 @@ electron.app.whenReady().then(() => {
 
     ipc.connectTo(IPC_SERVER_ID, () => {
         const connection = ipc.of[IPC_SERVER_ID]
+
         connection.on("connect", () => {
-            _logger.debug("Connected")
-            connection.emit("app.message", {
+            _logger.info("Process already running")
+
+            const message = {
                 id: IPC_CLIENT_ID,
                 data: "This is a test",
-            })
+            }
+            _logger.info("Sending message", message)
+            connection.emit("app.message", message)
+
             process.exit(0)
         })
+
         connection.on("error", err => {
             // _logger.debug("Error:", err)
             if (err.code !== "ENOENT") {
@@ -140,6 +151,7 @@ electron.app.whenReady().then(() => {
             }
             initialize({ withIpcConnection: true, asMainProcess: cliArgs.isMainProcess })
         })
+
         connection.on("app.message", data => {
             _logger.debug("Message:", data)
         })
