@@ -1,3 +1,6 @@
+const path = require("path")
+
+const electron = require("electron")
 const yargs = require("yargs/yargs")
 const yargsHelpers = require("yargs/helpers")
 
@@ -21,12 +24,18 @@ exports.parse = args => {
             type: "boolean",
             default: false,
         })
+        .option("log-dir", {
+            describe: "Override application's default directory for writing logs",
+            type: "string",
+            default: path.join(electron.app.getPath("userData"), "logs"),
+        })
         .help().argv
     messages.push(["Parsed by Yargs:", argv])
 
     const parsed = {
         isTest: argv.test,
         isMainProcess: argv.main,
+        logDir: argv.logDir,
     }
     messages.push(["Parsed arguments:", parsed])
 

@@ -17,7 +17,7 @@
   "license": "MIT",
   "main": "app/main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "electron . --log-dir logs",
     "test": "prettier --check . && mocha --timeout 20000",
     "format": "prettier --write .",
     "dist": "electron-builder"

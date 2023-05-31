@@ -1,4 +1,5 @@
 const childProcess = require("child_process")
+const fs = require("fs")
 const path = require("path")
 
 const electron = require("electron")
@@ -44,10 +45,15 @@ function spawnMainProcess(argv) {
     process.exit(0)
 }
 
-function initLogger(debugMessages) {
+function initLogger(debugMessages, options) {
+    options = Object.assign({}, { logDir: null }, options)
+
+    const logDir = options?.logDir ?? path.join(APPLICATION_DIR, "logs")
+    fs.mkdirSync(logDir, { recursive: true })
+
     log.transports.console = false
-    log.transports.file.format = "[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{scope}] [{level}] {text}"
-    log.transports.file.resolvePath = () => path.join(APPLICATION_DIR, "logs", "main.log")
+    log.transports.file.format = "[{y}-{m}-{d} {h}:{i}:{s}.{ms}]{scope} [{level}] {text}"
+    log.transports.file.resolvePath = () => path.join(logDir, "main.log")
 
     const logger = log.scope(process.pid.toString())
     for (const message of debugMessages) {
@@ -102,12 +108,11 @@ function handleConsoleError(err) {
     if (err.code !== "EPIPE") {
         throw new Error(`Could not write to log: ${err}`)
     }
-    // TODO Try to log the actual message, if not done at another place
 }
 
 electron.app.whenReady().then(() => {
     const [cliArgs, messages] = cli.parse(process.argv)
-    _logger = initLogger(messages)
+    _logger = initLogger(messages, { logDir: cliArgs.logDir })
     if (cliArgs.isTest) {
         initialize()
         return
