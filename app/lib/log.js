@@ -3,6 +3,8 @@ const path = require("path")
 
 const log = require("electron-log")
 
+const FILENAME = "main.log"
+
 const _debugMessages = []
 const _infoMessages = []
 const _errorMessages = []
@@ -24,12 +26,14 @@ function dumpPreInitMessages(storedMessages, outputFunc) {
     storedMessages.length = 0
 }
 
+exports.FILENAME = FILENAME
+
 exports.init = async logDir => {
     await fs.mkdir(logDir, { recursive: true })
 
     log.transports.console = false
     log.transports.file.format = "[{y}-{m}-{d} {h}:{i}:{s}.{ms}]{scope} [{level}] {text}"
-    log.transports.file.resolvePath = () => path.join(logDir, "main.log")
+    log.transports.file.resolvePath = () => path.join(logDir, FILENAME)
 
     _logger = log.scope(process.pid.toString())
 

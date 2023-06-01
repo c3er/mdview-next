@@ -52,6 +52,7 @@ function initElectron() {
     })
 
     electron.app.on("activate", () => {
+        // XXX Not tried yet
         if (electron.BrowserWindow.getAllWindows().length === 0) {
             createWindow()
         }
