@@ -66,6 +66,7 @@ function initIpc() {
         })
     })
     ipc.server.start()
+    log.debug("Server started")
 }
 
 function handleConsoleError(err) {
@@ -133,3 +134,5 @@ electron.app.whenReady().then(async () => {
 process.stdout.on("error", handleConsoleError)
 
 process.stderr.on("error", handleConsoleError)
+
+process.on("exit", code => log.debug(`Stopping with exit code ${code}`))

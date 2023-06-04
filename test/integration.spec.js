@@ -16,14 +16,16 @@ const LOG_DIR = path.join(DATA_DIR, "logs")
 let app
 let page
 
-async function waitFor(predicate, timeoutMs) {
+async function waitFor(predicate, milliseconds) {
     // Based on https://stackoverflow.com/a/47719203 (How to set maximum execution time for a Promise await?)
-    const timeout = (callback, timeoutMs) => () =>
-        new Promise(resolve => setTimeout(() => callback(resolve), timeoutMs))
+    const timeout = (callback, milliseconds) => () =>
+        new Promise(resolve => setTimeout(() => callback(resolve), milliseconds))
     return await Promise.race(
         [
-            () => new Promise(resolve => predicate(() => resolve(true))),
-            timeout(resolve => resolve(false), timeoutMs),
+            predicate.constructor.name === "AsyncFunction"
+                ? predicate
+                : () => new Promise(resolve => predicate(() => resolve(true))),
+            timeout(resolve => resolve(false), milliseconds),
         ].map(func => func()),
     )
 }
@@ -66,26 +68,96 @@ describe("Integration tests with single app instance", () => {
 
 describe("Process handling", () => {
     const MAIN_PROCESS_MESSAGE = "Spawned main process with PID"
+    const SERVER_STARTED_MESSAGE = "Server started"
+
+    function startProcess() {
+        return childProcess.spawn(electronPath, [".", "--log-dir", LOG_DIR])
+    }
+
+    function processExists(pid) {
+        try {
+            process.kill(pid, 0)
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    function destroyProcess(proc) {
+        proc.stderr.destroy()
+        proc.stdout.destroy()
+        proc.stdin.destroy()
+        proc.kill("SIGKILL")
+    }
+
+    function findLogLines(logLines, pattern) {
+        return logLines.filter(line => line.match(pattern))
+    }
+
+    async function assertProcessExited(proc) {
+        assert.isTrue(await waitFor(resolve => proc.on("exit", resolve), 2000))
+        assert.strictEqual(proc.exitCode, 0)
+    }
+
     beforeEach(async () => await cleanup())
 
     it("spawns main process", async () => {
-        const appProcess = childProcess.spawn(electronPath, [".", "--log-dir", LOG_DIR])
+        const startedProcess = startProcess()
+
         try {
-            const hasExited = await waitFor(resolve => appProcess.on("exit", resolve), 2000)
-            assert.isTrue(hasExited)
-            assert.equal(appProcess.exitCode, 0)
+            await assertProcessExited(startedProcess)
 
             const logLines = await readLog()
-            const mainProcessMessage = logLines.filter(line =>
-                line.includes(MAIN_PROCESS_MESSAGE),
-            )[0]
+            const mainProcessMessage = findLogLines(logLines, MAIN_PROCESS_MESSAGE)[0]
             assert.exists(mainProcessMessage)
+
             process.kill(Number(mainProcessMessage.split(" ").at(-1)))
         } finally {
-            appProcess.stderr.destroy()
-            appProcess.stdout.destroy()
-            appProcess.stdin.destroy()
-            appProcess.kill("SIGKILL")
+            destroyProcess(startedProcess)
+        }
+    })
+
+    it("sends message to main process", async () => {
+        let startedProcess = startProcess()
+        let mainPid
+
+        try {
+            await assertProcessExited(startedProcess)
+
+            let logLines = await readLog()
+            const mainProcessMessage = findLogLines(logLines, MAIN_PROCESS_MESSAGE)[0]
+            assert.exists(mainProcessMessage)
+
+            mainPid = Number(mainProcessMessage.split(" ").at(-1))
+            assert.isTrue(processExists(mainPid))
+
+            assert.isTrue(
+                await waitFor(async () => {
+                    while (true) {
+                        if (findLogLines(await readLog(), SERVER_STARTED_MESSAGE)[0]) {
+                            return true
+                        }
+                    }
+                }, 2000),
+            )
+
+            startedProcess = startProcess()
+            await assertProcessExited(startedProcess)
+
+            logLines = await readLog()
+            assert.exists(findLogLines(logLines, "Process already running")[0])
+
+            const jsonRegex = /\{.*\}/
+            const dataMessages = findLogLines(logLines, jsonRegex)
+            assert.strictEqual(dataMessages.length, 2)
+
+            assert.strictEqual(
+                dataMessages[1].match(jsonRegex)[0],
+                dataMessages[0].match(jsonRegex)[0],
+            )
+        } finally {
+            process.kill(mainPid)
+            destroyProcess(startedProcess)
         }
     })
 })
