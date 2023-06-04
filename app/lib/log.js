@@ -31,7 +31,7 @@ exports.FILENAME = FILENAME
 exports.init = async logDir => {
     await fs.mkdir(logDir, { recursive: true })
 
-    log.transports.console = false
+    log.transports.console.level = false
     log.transports.file.format = "[{y}-{m}-{d} {h}:{i}:{s}.{ms}]{scope} [{level}] {text}"
     log.transports.file.resolvePath = () => path.join(logDir, FILENAME)
 
