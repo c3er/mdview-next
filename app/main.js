@@ -2,9 +2,9 @@ const childProcess = require("child_process")
 const path = require("path")
 
 const electron = require("electron")
-const ipc = require("@node-ipc/node-ipc").default
 
 const cli = require("./lib/cli")
+const ipc = require("./lib/ipc")
 const log = require("./lib/log")
 
 const WINDOW_WIDTH_DEFAULT = 1024
@@ -15,6 +15,7 @@ const IPC_CLIENT_ID = "mdview-client"
 const IPC_CONNECTION_ATTEMPTS = 1
 
 let _ipcConnectionAttempts = IPC_CONNECTION_ATTEMPTS
+let _fileToOpen
 
 function createWindow() {
     const mainWindow = new electron.BrowserWindow({
@@ -22,6 +23,7 @@ function createWindow() {
         height: WINDOW_HEIGHT_DEFAULT,
         webPreferences: {
             preload: path.join(__dirname, "preload.js"),
+            sandbox: false,
         },
     })
     mainWindow.loadFile(path.join(__dirname, "index.html"))
@@ -57,15 +59,20 @@ function initElectron() {
             createWindow()
         }
     })
+
+    electron.ipcMain.handle(ipc.windowMessages.loadDocument, () => _fileToOpen)
 }
 
 function initIpc() {
-    ipc.serve(() => {
-        ipc.server.on("app.message", data => {
-            log.debug("Data:", data)
+    ipc.node.serve(() => {
+        ipc.node.server.on("app.message", message => {
+            log.debug("Data:", message)
+            if (message.messageId === ipc.messages.openFile) {
+                _fileToOpen = message.data
+            }
         })
     })
-    ipc.server.start()
+    ipc.node.server.start()
     log.debug("Server started")
 }
 
@@ -85,22 +92,23 @@ electron.app.whenReady().then(async () => {
         return
     }
 
-    ipc.config.id = IPC_SERVER_ID
-    ipc.config.retry = 5
-    ipc.config.maxRetries = IPC_CONNECTION_ATTEMPTS
-    ipc.config.silent = true
+    ipc.node.config.id = IPC_SERVER_ID
+    ipc.node.config.retry = 5
+    ipc.node.config.maxRetries = IPC_CONNECTION_ATTEMPTS
+    ipc.node.config.silent = true
 
-    ipc.connectTo(IPC_SERVER_ID, () => {
-        const connection = ipc.of[IPC_SERVER_ID]
+    ipc.node.connectTo(IPC_SERVER_ID, () => {
+        const connection = ipc.node.of[IPC_SERVER_ID]
 
         connection.on("connect", () => {
             log.info("Process already running")
 
             const message = {
                 id: IPC_CLIENT_ID,
-                data: "This is a test",
+                messageId: ipc.messages.openFile,
+                data: "path/to/another/file",
             }
-            log.info("Sending message", message)
+            log.debug("Sending message", message)
             connection.emit("app.message", message)
 
             process.exit(0)
@@ -116,6 +124,7 @@ electron.app.whenReady().then(async () => {
                 _ipcConnectionAttempts--
             } else if (cliArgs.isMainProcess) {
                 log.info("Starting as main process")
+                _fileToOpen = "path/to/file"
                 initIpc()
                 initElectron()
                 createWindow()

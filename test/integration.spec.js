@@ -31,7 +31,23 @@ async function waitFor(predicate, milliseconds) {
 }
 
 async function readLog() {
-    return (await fs.readFile(path.join(LOG_DIR, log.FILENAME), "utf-8")).split(/\r?\n/)
+    const lines = (await fs.readFile(path.join(LOG_DIR, log.FILENAME), "utf-8")).split(/\r?\n/)
+    const logEntries = []
+    const currentEntry = []
+    for (const line of lines) {
+        if (!line.match(/\[\d{4}-\d{2}-\d{2}/)) {
+            currentEntry.push(line)
+            continue
+        }
+
+        if (currentEntry.length > 0) {
+            logEntries.push(currentEntry.join("\n"))
+            currentEntry.length = 0
+        }
+        currentEntry.push(line)
+    }
+    logEntries.push(currentEntry.join("\n"))
+    return logEntries
 }
 
 async function cleanup() {
@@ -90,8 +106,8 @@ describe("Process handling", () => {
         proc.kill("SIGKILL")
     }
 
-    function findLogLines(logLines, pattern) {
-        return logLines.filter(line => line.match(pattern))
+    function findLogEntries(logEntries, pattern) {
+        return logEntries.filter(entry => entry.match(pattern))
     }
 
     async function assertProcessExited(proc) {
@@ -107,8 +123,7 @@ describe("Process handling", () => {
         try {
             await assertProcessExited(startedProcess)
 
-            const logLines = await readLog()
-            const mainProcessMessage = findLogLines(logLines, MAIN_PROCESS_MESSAGE)[0]
+            const mainProcessMessage = findLogEntries(await readLog(), MAIN_PROCESS_MESSAGE)[0]
             assert.exists(mainProcessMessage)
 
             process.kill(Number(mainProcessMessage.split(" ").at(-1)))
@@ -124,8 +139,7 @@ describe("Process handling", () => {
         try {
             await assertProcessExited(startedProcess)
 
-            let logLines = await readLog()
-            const mainProcessMessage = findLogLines(logLines, MAIN_PROCESS_MESSAGE)[0]
+            const mainProcessMessage = findLogEntries(await readLog(), MAIN_PROCESS_MESSAGE)[0]
             assert.exists(mainProcessMessage)
 
             mainPid = Number(mainProcessMessage.split(" ").at(-1))
@@ -134,7 +148,7 @@ describe("Process handling", () => {
             assert.isTrue(
                 await waitFor(async () => {
                     while (true) {
-                        if (findLogLines(await readLog(), SERVER_STARTED_MESSAGE)[0]) {
+                        if (findLogEntries(await readLog(), SERVER_STARTED_MESSAGE)[0]) {
                             return true
                         }
                     }
@@ -144,11 +158,11 @@ describe("Process handling", () => {
             startedProcess = startProcess()
             await assertProcessExited(startedProcess)
 
-            logLines = await readLog()
-            assert.exists(findLogLines(logLines, "Process already running")[0])
+            const logEntries = await readLog()
+            assert.exists(findLogEntries(logEntries, "Process already running")[0])
 
-            const jsonRegex = /\{.*\}/
-            const dataMessages = findLogLines(logLines, jsonRegex)
+            const jsonRegex = /\{\s*id.*messageId.*data.*\}/s
+            const dataMessages = findLogEntries(logEntries, jsonRegex)
             assert.strictEqual(dataMessages.length, 2)
 
             assert.strictEqual(
