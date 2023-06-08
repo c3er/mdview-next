@@ -1,33 +1,18 @@
 const childProcess = require("child_process")
-const path = require("path")
 
 const electron = require("electron")
 
 const cli = require("./lib/cli")
 const ipc = require("./lib/ipc")
 const log = require("./lib/log")
-
-const WINDOW_WIDTH_DEFAULT = 1024
-const WINDOW_HEIGHT_DEFAULT = 768
+const windowManagement = require("./lib/windowManagement")
 
 const IPC_SERVER_ID = "mdview-server"
 const IPC_CLIENT_ID = "mdview-client"
 const IPC_CONNECTION_ATTEMPTS = 1
 
 let _ipcConnectionAttempts = IPC_CONNECTION_ATTEMPTS
-let _fileToOpen
-
-function createWindow() {
-    const mainWindow = new electron.BrowserWindow({
-        width: WINDOW_WIDTH_DEFAULT,
-        height: WINDOW_HEIGHT_DEFAULT,
-        webPreferences: {
-            preload: path.join(__dirname, "preload.js"),
-            sandbox: false,
-        },
-    })
-    mainWindow.loadFile(path.join(__dirname, "index.html"))
-}
+let _fileToOpen = windowManagement.DEFAULT_FILE
 
 function spawnMainProcess(argv) {
     // Determine whether process was started via NPM and prepare accordingly
@@ -56,7 +41,7 @@ function initElectron() {
     electron.app.on("activate", () => {
         // XXX Not tried yet
         if (electron.BrowserWindow.getAllWindows().length === 0) {
-            createWindow()
+            windowManagement.open(_fileToOpen)
         }
     })
 
@@ -69,6 +54,7 @@ function initIpc() {
             log.debug("Data:", message)
             if (message.messageId === ipc.messages.openFile) {
                 _fileToOpen = message.data
+                windowManagement.open(_fileToOpen)
             }
         })
     })
@@ -85,10 +71,12 @@ function handleConsoleError(err) {
 electron.app.whenReady().then(async () => {
     const cliArgs = cli.parse(process.argv)
     await log.init(cliArgs.logDir)
+    const filePath = cliArgs.filePath
+
     if (cliArgs.isTest) {
         log.debug("Called in test mode...")
         initElectron()
-        createWindow()
+        windowManagement.open(filePath)
         return
     }
 
@@ -106,7 +94,7 @@ electron.app.whenReady().then(async () => {
             const message = {
                 id: IPC_CLIENT_ID,
                 messageId: ipc.messages.openFile,
-                data: "path/to/another/file",
+                data: filePath,
             }
             log.debug("Sending message", message)
             connection.emit("app.message", message)
@@ -124,10 +112,10 @@ electron.app.whenReady().then(async () => {
                 _ipcConnectionAttempts--
             } else if (cliArgs.isMainProcess) {
                 log.info("Starting as main process")
-                _fileToOpen = "path/to/file"
+                _fileToOpen = filePath
                 initIpc()
                 initElectron()
-                createWindow()
+                windowManagement.open(filePath)
             } else {
                 log.info("Directly called; starting main process...")
                 spawnMainProcess(process.argv)
