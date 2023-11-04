@@ -16,16 +16,22 @@ const LOG_DIR = path.join(DATA_DIR, "logs")
 let app
 let page
 
-async function waitFor(predicate, milliseconds) {
-    // Based on https://stackoverflow.com/a/47719203 (How to set maximum execution time for a Promise await?)
+// Based on https://stackoverflow.com/a/47719203 (How to set maximum execution time for a Promise await?)
+async function waitFor(predicate, milliseconds = 2000) {
+    const waitInfo = {
+        timeoutHasOccurred: false,
+    }
     const timeout = (callback, milliseconds) => () =>
         new Promise(resolve => setTimeout(() => callback(resolve), milliseconds))
     return await Promise.race(
         [
             predicate.constructor.name === "AsyncFunction"
-                ? predicate
-                : () => new Promise(resolve => predicate(() => resolve(true))),
-            timeout(resolve => resolve(false), milliseconds),
+                ? () => predicate(waitInfo)
+                : () => new Promise(resolve => predicate(() => resolve(true), waitInfo)),
+            timeout(resolve => {
+                waitInfo.timeoutHasOccurred = true
+                resolve(false)
+            }, milliseconds),
         ].map(func => func()),
     )
 }
@@ -146,31 +152,38 @@ describe("Process handling", () => {
             assert.isTrue(processExists(mainPid))
 
             assert.isTrue(
-                await waitFor(async () => {
-                    while (true) {
+                await waitFor(async waitInfo => {
+                    while (!waitInfo.timeoutHasOccurred) {
                         if (findLogEntries(await readLog(), SERVER_STARTED_MESSAGE)[0]) {
                             return true
                         }
                     }
-                }, 2000),
+                }),
             )
 
             startedProcess = startProcess()
             await assertProcessExited(startedProcess)
 
-            const logEntries = await readLog()
-            assert.exists(findLogEntries(logEntries, "Process already running")[0])
-
+            const expectedDataMessageCount = 2
             const jsonRegex = /\{\s*id.*messageId.*data.*\}/s
-            const dataMessages = findLogEntries(logEntries, jsonRegex)
-            assert.strictEqual(dataMessages.length, 2)
+            assert.isTrue(
+                await waitFor(async waitInfo => {
+                    while (!waitInfo.timeoutHasOccurred) {
+                        const logEntries = await readLog()
+                        assert.exists(findLogEntries(logEntries, "Process already running")[0])
 
-            assert.strictEqual(
-                dataMessages[1].match(jsonRegex)[0],
-                dataMessages[0].match(jsonRegex)[0],
+                        const dataMessages = findLogEntries(logEntries, jsonRegex)
+                        if (dataMessages.length === expectedDataMessageCount) {
+                            return (
+                                dataMessages[0].match(jsonRegex)[0] ===
+                                dataMessages[1].match(jsonRegex)[0]
+                            )
+                        }
+                    }
+                }),
             )
         } finally {
-            process.kill(mainPid)
+            process.kill(mainPid, "SIGKILL")
             destroyProcess(startedProcess)
         }
     })
