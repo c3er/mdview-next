@@ -33,7 +33,7 @@ exports.init = async logDir => {
 
     log.transports.console.level = false
     log.transports.file.format = "[{y}-{m}-{d} {h}:{i}:{s}.{ms}]{scope} [{level}] {text}"
-    log.transports.file.resolvePath = () => path.join(logDir, FILENAME)
+    log.transports.file.resolvePathFn = () => path.join(logDir, FILENAME)
 
     _logger = log.scope(process.pid.toString())
 
