@@ -35,6 +35,10 @@ exports.parse = args => {
     log.debug("Parsed by Yargs:", argv)
 
     const parsed = {
+        isTest: argv.test,
+        isMainProcess: argv.main,
+        logDir: argv.logDir,
+
         // Assume that the last argument is the file to open. If the application is
         // invoked by Playwright, the Yargs hideBin function fails.
         // See issues:
@@ -42,10 +46,6 @@ exports.parse = args => {
         // https://github.com/yargs/yargs/issues/2225
         // https://github.com/microsoft/playwright/issues/16614
         filePath: argv._.at(-1) ?? DEFAULT_FILE,
-
-        isTest: argv.test,
-        isMainProcess: argv.main,
-        logDir: argv.logDir,
     }
     log.debug("Parsed arguments:", parsed)
     return parsed

@@ -18,7 +18,7 @@
   "main": "app/main.js",
   "scripts": {
     "start": "electron . --log-dir logs",
-    "test": "prettier --check . && mocha --timeout 20000",
+    "test": "eslint . --max-warnings 0 && prettier --check . && mocha --timeout 20000",
     "format": "prettier --write .",
     "dist": "electron-builder"
   },
@@ -88,6 +88,8 @@
     "chai": "4.3.10",
     "electron": "27.0.3",
     "electron-builder": "24.6.4",
+    "eslint": "8.53.0",
+    "eslint-config-prettier": "9.0.0",
     "mocha": "10.2.0",
     "playwright": "1.39.0",
     "prettier": "3.0.3"

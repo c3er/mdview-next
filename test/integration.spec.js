@@ -13,11 +13,13 @@ const electron = playwright._electron
 const DATA_DIR = path.join(__dirname, "data")
 const LOG_DIR = path.join(DATA_DIR, "logs")
 
+const DEFAULT_TIMEOUT_MS = 2000
+
 let _app
 let _page
 
 // Based on https://stackoverflow.com/a/47719203 (How to set maximum execution time for a Promise await?)
-async function waitFor(predicate, milliseconds = 2000) {
+async function waitFor(predicate, milliseconds = DEFAULT_TIMEOUT_MS) {
     const waitInfo = {
         timeoutHasOccurred: false,
     }
@@ -71,7 +73,7 @@ async function startApp() {
 
     const page = await app.firstWindow()
     page.on("pageerror", error => assert.fail(`Page error: ${error}`))
-    page.setDefaultTimeout(2000)
+    page.setDefaultTimeout(DEFAULT_TIMEOUT_MS)
     await page.waitForSelector("h1") // Wait until the window is actually loaded
 
     return [app, page]
@@ -147,6 +149,7 @@ describe("Process handling", () => {
                             return true
                         }
                     }
+                    return false
                 }),
             )
 
@@ -169,6 +172,7 @@ describe("Process handling", () => {
                             )
                         }
                     }
+                    return false
                 }),
             )
         } finally {
