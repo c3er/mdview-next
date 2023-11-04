@@ -12,7 +12,7 @@ const IPC_CLIENT_ID = "mdview-client"
 const IPC_CONNECTION_ATTEMPTS = 1
 
 let _ipcConnectionAttempts = IPC_CONNECTION_ATTEMPTS
-let _fileToOpen = windowManagement.DEFAULT_FILE
+let _fileToOpen = cli.DEFAULT_FILE
 
 function spawnMainProcess(argv) {
     // Determine whether process was started via NPM and prepare accordingly
