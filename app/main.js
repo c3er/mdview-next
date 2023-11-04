@@ -1,4 +1,5 @@
 const childProcess = require("child_process")
+const fs = require("fs")
 
 const electron = require("electron")
 
@@ -103,8 +104,13 @@ electron.app.whenReady().then(async () => {
         })
 
         connection.on("error", err => {
-            // log.debug("Error:", err)
-            if (err.code !== "ENOENT") {
+            if (err.code === "ECONNREFUSED") {
+                try {
+                    fs.unlinkSync(connection.path)
+                } catch (err) {
+                    log.warn("Error at cleaning up renmants of previous instance:", err)
+                }
+            } else if (err.code !== "ENOENT") {
                 throw new Error(`Unexpected IPC error occurred: ${err}`)
             }
 
