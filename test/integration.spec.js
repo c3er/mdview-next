@@ -13,8 +13,8 @@ const electron = playwright._electron
 const DATA_DIR = path.join(__dirname, "data")
 const LOG_DIR = path.join(DATA_DIR, "logs")
 
-let app
-let page
+let _app
+let _page
 
 // Based on https://stackoverflow.com/a/47719203 (How to set maximum execution time for a Promise await?)
 async function waitFor(predicate, milliseconds = 2000) {
@@ -36,6 +36,8 @@ async function waitFor(predicate, milliseconds = 2000) {
     )
 }
 
+// Parses a log file to a list of log entries.
+// Entries that span multiple lines are regarded as one entry.
 async function readLog() {
     const lines = (await fs.readFile(path.join(LOG_DIR, log.FILENAME), "utf-8")).split(/\r?\n/)
     const logEntries = []
@@ -57,7 +59,7 @@ async function readLog() {
 }
 
 async function cleanup() {
-    app = page = null
+    _app = _page = null
     await fs.rm(DATA_DIR, { force: true, recursive: true })
 }
 
@@ -74,19 +76,6 @@ async function startApp() {
 
     return [app, page]
 }
-
-describe("Integration tests with single app instance", () => {
-    before(async () => {
-        await cleanup()
-        ;[app, page] = await startApp()
-    })
-
-    after(async () => await app.close())
-
-    it("opens a window", () => {
-        assert.exists(page)
-    })
-})
 
 describe("Process handling", () => {
     const MAIN_PROCESS_MESSAGE = "Spawned main process with PID"
@@ -117,7 +106,7 @@ describe("Process handling", () => {
     }
 
     async function assertProcessExited(proc) {
-        assert.isTrue(await waitFor(resolve => proc.on("exit", resolve), 2000))
+        assert.isTrue(await waitFor(resolve => proc.on("exit", resolve)))
         assert.strictEqual(proc.exitCode, 0)
     }
 
@@ -186,5 +175,18 @@ describe("Process handling", () => {
             process.kill(mainPid, "SIGKILL")
             destroyProcess(startedProcess)
         }
+    })
+})
+
+describe("Integration tests with single app instance", () => {
+    before(async () => {
+        await cleanup()
+        ;[_app, _page] = await startApp()
+    })
+
+    after(async () => await _app.close())
+
+    it("opens a window", () => {
+        assert.exists(_page)
     })
 })
