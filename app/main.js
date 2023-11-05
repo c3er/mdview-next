@@ -88,6 +88,7 @@ electron.app.whenReady().then(async () => {
 
     ipc.node.connectTo(IPC_SERVER_ID, () => {
         const connection = ipc.node.of[IPC_SERVER_ID]
+        log.debug("Path to socket connection:", connection.path)
 
         connection.on("connect", () => {
             log.info("Process already running")
