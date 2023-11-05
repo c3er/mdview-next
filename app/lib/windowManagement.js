@@ -21,6 +21,13 @@ function createWindow(filePath) {
     return window
 }
 
-exports.open = filePath => (windows[filePath] = createWindow(filePath))
+exports.open = filePath => {
+    const existingWindow = windows[filePath]
+    if (!existingWindow) {
+        windows[filePath] = createWindow(filePath)
+    } else {
+        existingWindow.focus()
+    }
+}
 
 exports.close = filePath => windows[filePath].close()
