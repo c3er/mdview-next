@@ -1,4 +1,18 @@
+const electron = require("electron")
+
+const ipc = require("./lib/ipc")
+
 const INTERVAL_TIME_MS = 5
+
+const _versions = {
+    node: process.versions.node,
+    chrome: process.versions.chrome,
+    electron: process.versions.electron,
+}
+
+async function loadDocument() {
+    return await electron.ipcRenderer.invoke(ipc.windowMessages.loadDocument)
+}
 
 function insertText(selector, text) {
     const element = document.getElementById(selector)
@@ -9,12 +23,10 @@ function insertText(selector, text) {
 
 window.addEventListener("DOMContentLoaded", () => {
     for (const type of ["chrome", "node", "electron"]) {
-        // eslint-disable-next-line no-undef
         insertText(`${type}-version`, _versions[type])
     }
     const intervalId = setInterval(async () => {
-        // eslint-disable-next-line no-undef
-        const doc = await _main.loadDocument()
+        const doc = await loadDocument()
         if (doc) {
             insertText("file-path", doc)
             clearInterval(intervalId)

@@ -12,8 +12,9 @@ function createWindow(filePath) {
         width: WINDOW_WIDTH_DEFAULT,
         height: WINDOW_HEIGHT_DEFAULT,
         webPreferences: {
-            preload: path.join(__dirname, "..", "preload.js"),
-            sandbox: false,
+            nodeIntegration: true,
+            enableRemoteModule: true,
+            contextIsolation: false,
         },
     })
     window.on("close", () => delete windows[filePath])
