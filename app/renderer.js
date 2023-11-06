@@ -1,14 +1,13 @@
 const fs = require("fs/promises")
 
-const electron = require("electron")
-
 const documentRendering = require("./lib/documentRendering")
-const ipc = require("./lib/ipc")
+const ipc = require("./lib/ipc/ipcRenderer")
+const ipcMessages = require("./lib/ipc/ipcMessages")
 
 let _domIsLoaded = false
 
-async function loadDocument() {
-    return await electron.ipcRenderer.invoke(ipc.windowMessages.loadDocument)
+async function fetchDocumentPath() {
+    return await ipc.invoke(ipcMessages.intern.fetchDocumentPath)
 }
 
 function domContentLoadedHandler() {
@@ -27,7 +26,7 @@ addEventListener("DOMContentLoaded", domContentLoadedHandler)
             return
         }
 
-        const documentPath = await loadDocument()
+        const documentPath = await fetchDocumentPath()
         if (!documentPath) {
             return
         }
