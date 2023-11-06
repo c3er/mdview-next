@@ -82,6 +82,7 @@
   "dependencies": {
     "@node-ipc/node-ipc": "11.0.3",
     "electron-log": "5.0.0",
+    "markdown-it": "13.0.2",
     "yargs": "17.7.2"
   },
   "devDependencies": {

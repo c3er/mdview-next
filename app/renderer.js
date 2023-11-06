@@ -1,37 +1,40 @@
+const fs = require("fs/promises")
+
 const electron = require("electron")
 
+const documentRendering = require("./lib/documentRendering")
 const ipc = require("./lib/ipc")
 
-const INTERVAL_TIME_MS = 5
-
-const _versions = {
-    node: process.versions.node,
-    chrome: process.versions.chrome,
-    electron: process.versions.electron,
-}
+let _domIsLoaded = false
 
 async function loadDocument() {
     return await electron.ipcRenderer.invoke(ipc.windowMessages.loadDocument)
 }
 
-function insertText(selector, text) {
-    const element = document.getElementById(selector)
-    if (element) {
-        element.innerText = text
-    }
+function domContentLoadedHandler() {
+    _domIsLoaded = true
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-    for (const type of ["chrome", "node", "electron"]) {
-        insertText(`${type}-version`, _versions[type])
-    }
+addEventListener("DOMContentLoaded", domContentLoadedHandler)
+
+// Before first load
+;(() => {
+    documentRendering.reset()
+
+    const FIRST_LOAD_INTERVAL_TIME_MS = 5
     const intervalId = setInterval(async () => {
-        const doc = await loadDocument()
-        if (doc) {
-            insertText("file-path", doc)
-            clearInterval(intervalId)
-        } else {
-            insertText("file-path", "Not loaded yet")
+        if (!_domIsLoaded) {
+            return
         }
-    }, INTERVAL_TIME_MS)
-})
+
+        const documentPath = await loadDocument()
+        if (!documentPath) {
+            return
+        }
+
+        document.getElementById("content-body").innerHTML = documentRendering.render(
+            await fs.readFile(documentPath, { encoding: "utf-8" }),
+        )
+        clearInterval(intervalId)
+    }, FIRST_LOAD_INTERVAL_TIME_MS)
+})()
