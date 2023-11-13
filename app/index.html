@@ -3,9 +3,26 @@
     <head>
         <meta charset="UTF-8" />
         <meta http-equiv="Content-Security-Policy" content="script-src 'self'" />
-        <link href="./styles.css" rel="stylesheet" />
+        <style>
+            @import "../node_modules/github-markdown-css/github-markdown-light.css"
+                (prefers-color-scheme: light);
+            @import "../node_modules/highlight.js/styles/vs.css" (prefers-color-scheme: light);
+
+            @import "../node_modules/github-markdown-dracula-css/github-markdown-dracula.css" screen
+                and (prefers-color-scheme: dark);
+            @import "../node_modules/highlight.js/styles/github-dark.css" screen and
+                (prefers-color-scheme: dark);
+
+            /* Not yet implemented */
+            /* @import "../node_modules/katex/dist/katex.min.css"; */
+
+            @import "css/main.css";
+            @import "css/screen.css" screen;
+            @import "css/print.css" print;
+        </style>
         <title>Markdown Viewer</title>
     </head>
+
     <body>
         <div class="markdown-body" id="content-body" tabindex="0"></div>
 

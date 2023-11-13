@@ -82,17 +82,19 @@
   "dependencies": {
     "@node-ipc/node-ipc": "11.0.3",
     "electron-log": "5.0.0",
+    "github-markdown-css": "5.4.0",
+    "github-markdown-dracula-css": "4.0.3",
     "markdown-it": "13.0.2",
     "yargs": "17.7.2"
   },
   "devDependencies": {
     "chai": "4.3.10",
-    "electron": "27.0.3",
+    "electron": "27.0.4",
     "electron-builder": "24.6.4",
     "eslint": "8.53.0",
     "eslint-config-prettier": "9.0.0",
     "mocha": "10.2.0",
     "playwright": "1.39.0",
-    "prettier": "3.0.3"
+    "prettier": "3.1.0"
   }
 }
