@@ -8,4 +8,4 @@ exports.reset = () => {
     })
 }
 
-exports.render = content => _markdown.render(content)
+exports.render = content => _markdown.render(content.replace(/^\uFEFF/, ""))
