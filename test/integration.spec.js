@@ -6,12 +6,11 @@ const assert = require("chai").assert
 const electronPath = require("electron")
 const playwright = require("playwright")
 
+const lib = require("./testLib")
+
 const log = require("../app/lib/log")
 
 const electron = playwright._electron
-
-const DATA_DIR = path.join(__dirname, "data")
-const LOG_DIR = path.join(DATA_DIR, "logs")
 
 const DEFAULT_TIMEOUT_MS = 2000
 
@@ -41,7 +40,7 @@ async function waitFor(predicate, milliseconds = DEFAULT_TIMEOUT_MS) {
 // Parses a log file to a list of log entries.
 // Entries that span multiple lines are regarded as one entry.
 async function readLog() {
-    const lines = (await fs.readFile(path.join(LOG_DIR, log.FILENAME), "utf-8")).split(/\r?\n/)
+    const lines = (await fs.readFile(path.join(lib.LOG_DIR, log.FILENAME), "utf-8")).split(/\r?\n/)
     const logEntries = []
     const currentEntry = []
     for (const line of lines) {
@@ -62,12 +61,12 @@ async function readLog() {
 
 async function cleanup() {
     _app = _page = null
-    await fs.rm(DATA_DIR, { force: true, recursive: true })
+    await lib.removeData()
 }
 
 async function startApp() {
     const app = await electron.launch({
-        args: [path.join(__dirname, ".."), "--test", "--log-dir", LOG_DIR],
+        args: [path.join(__dirname, ".."), "--test", "--log-dir", lib.LOG_DIR],
         executablePath: electronPath,
     })
 
@@ -84,7 +83,7 @@ describe("Process handling", () => {
     const SERVER_STARTED_MESSAGE = "Server started"
 
     function startProcess() {
-        return childProcess.spawn(electronPath, [".", "--log-dir", LOG_DIR])
+        return childProcess.spawn(electronPath, [".", "--log-dir", lib.LOG_DIR])
     }
 
     function processExists(pid) {

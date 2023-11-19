@@ -1,35 +1,46 @@
 const path = require("path")
 
-const electron = require("electron")
 const yargs = require("yargs/yargs")
 const yargsHelpers = require("yargs/helpers")
 
 const log = require("./log")
 
-const DEFAULT_FILE = path.join(__dirname, "..", "..", "README.md")
+let electron
+
+const defaults = {
+    isTest: false,
+    isMainProcess: false,
+    logDir: "",
+    filePath: path.join(__dirname, "..", "..", "README.md"),
+}
 
 exports.IS_MAIN_SWITCH = "--main"
 
-exports.DEFAULT_FILE = DEFAULT_FILE
+exports.defaults = defaults
+
+exports.init = electronMock => {
+    electron = electronMock ?? require("electron")
+    defaults.logDir = path.join(electron.app.getPath("userData"), "logs")
+}
 
 exports.parse = args => {
     log.debug("Raw arguments:", args)
 
-    const argv = yargs(yargsHelpers.hideBin(args))
+    const argv = yargs(args)
         .option("test", {
             describe: "Flag for test mode needed by automatic tests",
             type: "boolean",
-            default: false,
+            default: defaults.isTest,
         })
         .option("main", {
             describe: "Internally used flag for process management",
             type: "boolean",
-            default: false,
+            default: defaults.isMainProcess,
         })
         .option("log-dir", {
             describe: "Override application's default directory for writing logs",
             type: "string",
-            default: path.join(electron.app.getPath("userData"), "logs"),
+            default: defaults.logDir,
         })
         .help().argv
     log.debug("Parsed by Yargs:", argv)
@@ -45,8 +56,10 @@ exports.parse = args => {
         // https://github.com/microsoft/playwright/issues/23385
         // https://github.com/yargs/yargs/issues/2225
         // https://github.com/microsoft/playwright/issues/16614
-        filePath: argv._.at(-1) ?? DEFAULT_FILE,
+        filePath: argv._.at(-1) ?? defaults.filePath,
     }
     log.debug("Parsed arguments:", parsed)
     return parsed
 }
+
+exports.hideBin = yargsHelpers.hideBin

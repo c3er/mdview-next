@@ -11,7 +11,7 @@ const log = require("./lib/log")
 const windowManagement = require("./lib/windowManagement")
 
 let _ipcConnectionAttempts = ipcExtern.CONNECTION_ATTEMPTS
-let _fileToOpen = cli.DEFAULT_FILE
+let _fileToOpen = cli.defaults.filePath
 
 function spawnMainProcess(argv) {
     // Determine whether process was started via NPM and prepare accordingly
@@ -68,7 +68,8 @@ function handleConsoleError(err) {
 }
 
 electron.app.whenReady().then(async () => {
-    const cliArgs = cli.parse(process.argv)
+    cli.init()
+    const cliArgs = cli.parse(cli.hideBin(process.argv))
     await log.init(cliArgs.logDir)
     const filePath = cliArgs.filePath
 
