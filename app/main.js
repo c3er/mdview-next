@@ -11,7 +11,6 @@ const log = require("./lib/log")
 const windowManagement = require("./lib/windowManagement")
 
 let _ipcConnectionAttempts = ipcExtern.CONNECTION_ATTEMPTS
-let _fileToOpen = cli.defaults.filePath
 
 function spawnMainProcess(argv) {
     // Determine whether process was started via NPM and prepare accordingly
@@ -40,11 +39,13 @@ function initElectron() {
     electron.app.on("activate", () => {
         // XXX Not tried yet
         if (electron.BrowserWindow.getAllWindows().length === 0) {
-            windowManagement.open(_fileToOpen)
+            windowManagement.open()
         }
     })
 
-    ipcIntern.handle(ipcMessages.intern.fetchDocumentPath, () => _fileToOpen)
+    ipcIntern.handle(ipcMessages.intern.fetchDocumentPath, id =>
+        windowManagement.pathByWindowId(id),
+    )
 }
 
 function initIpc() {
@@ -52,8 +53,7 @@ function initIpc() {
         ipcExtern.node.server.on("app.message", message => {
             log.debug("Data:", message)
             if (message.messageId === ipcMessages.extern.openFile) {
-                _fileToOpen = message.data
-                windowManagement.open(_fileToOpen)
+                windowManagement.open(message.data)
             }
         })
     })
@@ -80,6 +80,7 @@ electron.app.whenReady().then(async () => {
     )
 
     await log.init(cliArgs.logDir)
+    windowManagement.init(cli.defaults.filePath)
     const filePath = cliArgs.filePath
 
     if (cliArgs.isTest) {
@@ -127,7 +128,6 @@ electron.app.whenReady().then(async () => {
                 _ipcConnectionAttempts--
             } else if (cliArgs.isMainProcess) {
                 log.info("Starting as main process")
-                _fileToOpen = filePath
                 initIpc()
                 initElectron()
                 windowManagement.open(filePath)

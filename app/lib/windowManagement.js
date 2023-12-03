@@ -5,7 +5,10 @@ const electron = require("electron")
 const WINDOW_WIDTH_DEFAULT = 1024
 const WINDOW_HEIGHT_DEFAULT = 768
 
-const windows = {}
+const _windows = {}
+
+let _defaultFilePath
+let _lastOpenedFilePath
 
 function createWindow(filePath) {
     const window = new electron.BrowserWindow({
@@ -17,18 +20,31 @@ function createWindow(filePath) {
             contextIsolation: false,
         },
     })
-    window.on("close", () => delete windows[filePath])
+    window.on("close", () => delete _windows[filePath])
     window.loadFile(path.join(__dirname, "..", "index.html"))
     return window
 }
 
+exports.init = defaultFile => (_defaultFilePath = defaultFile)
+
 exports.open = filePath => {
-    const existingWindow = windows[filePath]
+    filePath ??= _lastOpenedFilePath ?? _defaultFilePath
+    const existingWindow = _windows[filePath]
     if (!existingWindow) {
-        windows[filePath] = createWindow(filePath)
+        _windows[filePath] = createWindow(filePath)
     } else {
         existingWindow.focus()
     }
+    _lastOpenedFilePath = filePath
 }
 
-exports.close = filePath => windows[filePath].close()
+exports.close = filePath => _windows[filePath].close()
+
+exports.pathByWindowId = id => {
+    for (const [path, window] of Object.entries(_windows)) {
+        if (window.webContents.id === id) {
+            return path
+        }
+    }
+    throw new Error(`No window found for ID ${id}`)
+}
