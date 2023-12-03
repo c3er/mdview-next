@@ -65,17 +65,15 @@ async function cleanup() {
 }
 
 async function startApp() {
-    const app = await electron.launch({
+    _app = await electron.launch({
         args: [path.join(__dirname, ".."), "--test", "--log-dir", lib.LOG_DIR],
         executablePath: electronPath,
     })
 
-    const page = await app.firstWindow()
-    page.on("pageerror", error => assert.fail(`Page error: ${error}`))
-    page.setDefaultTimeout(DEFAULT_TIMEOUT_MS)
-    await page.waitForSelector("h1") // Wait until the window is actually loaded
-
-    return [app, page]
+    _page = await _app.firstWindow()
+    _page.on("pageerror", error => assert.fail(`Page error: ${error}`))
+    _page.setDefaultTimeout(DEFAULT_TIMEOUT_MS)
+    await _page.waitForSelector("h1") // Wait until the window is actually loaded
 }
 
 describe("Process handling", () => {
@@ -184,7 +182,7 @@ describe("Process handling", () => {
 describe("Integration tests with single app instance", () => {
     before(async () => {
         await cleanup()
-        ;[_app, _page] = await startApp()
+        await startApp()
     })
 
     after(async () => await _app.close())
