@@ -69,7 +69,16 @@ function handleConsoleError(err) {
 
 electron.app.whenReady().then(async () => {
     cli.init()
-    const cliArgs = cli.parse(cli.hideBin(process.argv))
+    const args = process.argv
+    log.debug("Unfiltered CLI arguments:", args)
+    const cliArgs = cli.parse(
+        cli.hideBin(
+            args.filter(
+                arg => !arg.includes("--remote-debugging-port") && !arg.includes("--inspect"),
+            ),
+        ),
+    )
+
     await log.init(cliArgs.logDir)
     const filePath = cliArgs.filePath
 
