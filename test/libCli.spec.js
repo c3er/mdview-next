@@ -11,7 +11,7 @@ describe("Command line interface", () => {
 
     beforeEach(async () => {
         await lib.removeData()
-        cli.init(mocking.electron)
+        cli.init(mocking.createElectron())
         await log.init(lib.LOG_DIR)
     })
 

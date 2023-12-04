@@ -1,11 +1,11 @@
 const path = require("path")
 
-const electron = require("electron")
+let electron
 
 const WINDOW_WIDTH_DEFAULT = 1024
 const WINDOW_HEIGHT_DEFAULT = 768
 
-const _windows = {}
+let _windows = {}
 
 let _defaultFilePath
 let _lastOpenedFilePath
@@ -25,7 +25,10 @@ function createWindow(filePath) {
     return window
 }
 
-exports.init = defaultFile => (_defaultFilePath = defaultFile)
+exports.init = (defaultFile, electronMock) => {
+    electron = electronMock ?? require("electron")
+    _defaultFilePath = defaultFile
+}
 
 exports.open = filePath => {
     filePath ??= _lastOpenedFilePath ?? _defaultFilePath
@@ -38,7 +41,13 @@ exports.open = filePath => {
     _lastOpenedFilePath = filePath
 }
 
-exports.close = filePath => _windows[filePath].close()
+exports.close = filePath => {
+    if (!_windows[filePath]) {
+        throw new Error(`No window open with file path "${filePath}"`)
+    }
+    _windows[filePath].close()
+    delete _windows[filePath]
+}
 
 exports.pathByWindowId = id => {
     for (const [path, window] of Object.entries(_windows)) {
@@ -48,3 +57,11 @@ exports.pathByWindowId = id => {
     }
     throw new Error(`No window found for ID ${id}`)
 }
+
+// For testing
+
+exports.windows = () => _windows
+
+exports.lastOpenedFilePath = () => _lastOpenedFilePath
+
+exports.reset = () => (_windows = {})
