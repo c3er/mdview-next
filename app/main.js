@@ -11,6 +11,7 @@ const log = require("./lib/log")
 const windowManagement = require("./lib/windowManagement")
 
 let _ipcConnectionAttempts = ipcExtern.CONNECTION_ATTEMPTS
+let _isMainProcess = false
 
 function spawnMainProcess(argv) {
     // Determine whether process was started via NPM and prepare accordingly
@@ -128,6 +129,7 @@ electron.app.whenReady().then(async () => {
                 _ipcConnectionAttempts--
             } else if (cliArgs.isMainProcess) {
                 log.info("Starting as main process")
+                _isMainProcess = true
                 initIpc()
                 initElectron()
                 windowManagement.open(filePath)
@@ -147,4 +149,9 @@ process.stdout.on("error", handleConsoleError)
 
 process.stderr.on("error", handleConsoleError)
 
-process.on("exit", code => log.debug(`Stopping with exit code ${code}`))
+process.on("exit", code => {
+    log.debug(`Stopping with exit code ${code}`)
+    if (_isMainProcess) {
+        log.debug("Main process stopped")
+    }
+})
