@@ -34,7 +34,7 @@ addEventListener("DOMContentLoaded", domContentLoadedHandler)
             return
         }
 
-        document.getElementById("content-body").innerHTML = documentRendering.render(
+        document.querySelector("article#content-body").innerHTML = documentRendering.render(
             await fs.readFile(documentPath, { encoding: "utf-8" }),
         )
         log.info(`Rendered document "${documentPath}"`)
