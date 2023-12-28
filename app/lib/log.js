@@ -10,6 +10,11 @@ const _infoMessages = []
 const _errorMessages = []
 
 let _logger
+const _scope = {
+    main: "main",
+    started: "started",
+    renderer: "renderer",
+}
 
 function output(storedMessages, outputFunc, args) {
     if (!_logger) {
@@ -28,14 +33,14 @@ function dumpPreInitMessages(storedMessages, outputFunc) {
 
 exports.FILENAME = FILENAME
 
-exports.init = async logDir => {
+exports.init = async (logDir, isMainProcess) => {
     await fs.mkdir(logDir, { recursive: true })
 
     log.transports.console.level = false
     log.transports.file.format = "[{y}-{m}-{d} {h}:{i}:{s}.{ms}]{scope} [{level}] {text}"
     log.transports.file.resolvePathFn = () => path.join(logDir, FILENAME)
 
-    _logger = log.scope(process.pid.toString())
+    _logger = log.scope(`${isMainProcess ? _scope.main : _scope.started} ${process.pid}`)
 
     dumpPreInitMessages(_debugMessages, _logger.debug)
     dumpPreInitMessages(_infoMessages, _logger.info)

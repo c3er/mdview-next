@@ -79,8 +79,9 @@ electron.app.whenReady().then(async () => {
             ),
         ),
     )
+    _isMainProcess = cliArgs.isMainProcess
 
-    await log.init(cliArgs.logDir)
+    await log.init(cliArgs.logDir, _isMainProcess)
     windowManagement.init(cli.defaults.filePath)
     const filePath = cliArgs.filePath
 
@@ -127,9 +128,8 @@ electron.app.whenReady().then(async () => {
 
             if (_ipcConnectionAttempts > 0) {
                 _ipcConnectionAttempts--
-            } else if (cliArgs.isMainProcess) {
+            } else if (_isMainProcess) {
                 log.info("Starting as main process")
-                _isMainProcess = true
                 initIpc()
                 initElectron()
                 windowManagement.open(filePath)
