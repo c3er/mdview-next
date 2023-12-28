@@ -47,7 +47,7 @@ function initElectron() {
     )
 }
 
-function initIpc() {
+function initProcessServer() {
     ipc.extern.node.serve(() => {
         ipc.extern.node.server.on("app.message", message => {
             log.debug("Data:", message)
@@ -129,7 +129,7 @@ electron.app.whenReady().then(async () => {
                 _ipcConnectionAttempts--
             } else if (_isMainProcess) {
                 log.info("Starting as main process")
-                initIpc()
+                initProcessServer()
                 initElectron()
                 windowManagement.open(filePath)
             } else {

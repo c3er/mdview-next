@@ -3,6 +3,8 @@ const path = require("path")
 
 const log = require("electron-log")
 
+const shared = require("./logShared")
+
 const FILENAME = "main.log"
 
 const _debugMessages = []
@@ -10,11 +12,6 @@ const _infoMessages = []
 const _errorMessages = []
 
 let _logger
-const _scope = {
-    main: "main",
-    started: "started",
-    renderer: "renderer",
-}
 
 function output(storedMessages, outputFunc, args) {
     if (!_logger) {
@@ -40,7 +37,12 @@ exports.init = async (logDir, isMainProcess) => {
     log.transports.file.format = "[{y}-{m}-{d} {h}:{i}:{s}.{ms}]{scope} [{level}] {text}"
     log.transports.file.resolvePathFn = () => path.join(logDir, FILENAME)
 
-    _logger = log.scope(`${isMainProcess ? _scope.main : _scope.started} ${process.pid}`)
+    _logger = log.scope(
+        shared.scopeString(
+            isMainProcess ? shared.processType.main : shared.processType.started,
+            process.pid,
+        ),
+    )
 
     dumpPreInitMessages(_debugMessages, _logger.debug)
     dumpPreInitMessages(_infoMessages, _logger.info)
