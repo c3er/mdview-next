@@ -3,14 +3,12 @@ const fs = require("fs")
 
 const electron = require("electron")
 
-const cli = require("./lib/cli")
-const ipcExtern = require("./lib/ipc/main/ipcExtern")
-const ipcIntern = require("./lib/ipc/main/ipcIntern")
-const ipcMessages = require("./lib/ipc/ipcMessages")
-const log = require("./lib/log")
-const windowManagement = require("./lib/windowManagement")
+const cli = require("./lib/main/cli")
+const ipc = require("./lib/ipcMain")
+const log = require("./lib/logMain")
+const windowManagement = require("./lib/main/windowManagement")
 
-let _ipcConnectionAttempts = ipcExtern.CONNECTION_ATTEMPTS
+let _ipcConnectionAttempts = ipc.extern.CONNECTION_ATTEMPTS
 let _isMainProcess = false
 
 function spawnMainProcess(argv) {
@@ -44,21 +42,21 @@ function initElectron() {
         }
     })
 
-    ipcIntern.handle(ipcMessages.intern.fetchDocumentPath, id =>
+    ipc.intern.handle(ipc.messages.intern.fetchDocumentPath, id =>
         windowManagement.pathByWindowId(id),
     )
 }
 
 function initIpc() {
-    ipcExtern.node.serve(() => {
-        ipcExtern.node.server.on("app.message", message => {
+    ipc.extern.node.serve(() => {
+        ipc.extern.node.server.on("app.message", message => {
             log.debug("Data:", message)
-            if (message.messageId === ipcMessages.extern.openFile) {
+            if (message.messageId === ipc.messages.extern.openFile) {
                 windowManagement.open(message.data)
             }
         })
     })
-    ipcExtern.node.server.start()
+    ipc.extern.node.server.start()
     log.debug("Server started")
 }
 
@@ -92,21 +90,22 @@ electron.app.whenReady().then(async () => {
         return
     }
 
-    ipcExtern.node.config.id = ipcExtern.SERVER_ID
-    ipcExtern.node.config.retry = 5
-    ipcExtern.node.config.maxRetries = ipcExtern.CONNECTION_ATTEMPTS
-    ipcExtern.node.config.silent = true
+    const ipcNodeConfig = ipc.extern.node.config
+    ipcNodeConfig.id = ipc.extern.SERVER_ID
+    ipcNodeConfig.retry = 5
+    ipcNodeConfig.maxRetries = ipc.extern.CONNECTION_ATTEMPTS
+    ipcNodeConfig.silent = true
 
-    ipcExtern.node.connectTo(ipcExtern.SERVER_ID, () => {
-        const connection = ipcExtern.node.of[ipcExtern.SERVER_ID]
+    ipc.extern.node.connectTo(ipc.extern.SERVER_ID, () => {
+        const connection = ipc.extern.node.of[ipc.extern.SERVER_ID]
         log.debug("Path to socket connection:", connection.path)
 
         connection.on("connect", () => {
             log.info("Process already running")
 
             const message = {
-                id: ipcExtern.CLIENT_ID,
-                messageId: ipcMessages.extern.openFile,
+                id: ipc.extern.CLIENT_ID,
+                messageId: ipc.messages.extern.openFile,
                 data: filePath,
             }
             log.debug("Sending message", message)

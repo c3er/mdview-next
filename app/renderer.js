@@ -1,8 +1,8 @@
 const fs = require("fs/promises")
 
-const documentRendering = require("./lib/documentRendering")
-const ipc = require("./lib/ipc/ipcRenderer")
-const ipcMessages = require("./lib/ipc/ipcMessages")
+const documentRendering = require("./lib/renderer/documentRendering")
+const ipc = require("./lib/ipcRenderer")
+const ipcMessages = require("./lib/ipcMessages")
 
 let _domIsLoaded = false
 

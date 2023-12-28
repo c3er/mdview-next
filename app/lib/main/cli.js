@@ -3,7 +3,7 @@ const path = require("path")
 const yargs = require("yargs/yargs")
 const yargsHelpers = require("yargs/helpers")
 
-const log = require("./log")
+const log = require("../logMain")
 
 let electron
 
@@ -11,7 +11,7 @@ const defaults = {
     isTest: false,
     isMainProcess: false,
     logDir: "",
-    filePath: path.join(__dirname, "..", "..", "README.md"),
+    filePath: path.join(__dirname, "..", "..", "..", "README.md"),
 }
 
 exports.IS_MAIN_SWITCH = "--main"

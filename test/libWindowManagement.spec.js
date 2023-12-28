@@ -1,6 +1,6 @@
 const assert = require("chai").assert
 
-const windowManagement = require("../app/lib/windowManagement")
+const windowManagement = require("../app/lib/main/windowManagement")
 
 const mocking = require("./mocking")
 

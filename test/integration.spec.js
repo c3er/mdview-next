@@ -8,7 +8,7 @@ const playwright = require("playwright")
 
 const lib = require("./testLib")
 
-const log = require("../app/lib/log")
+const log = require("../app/lib/logMain")
 
 const electron = playwright._electron
 

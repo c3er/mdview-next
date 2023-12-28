@@ -1,7 +1,7 @@
 const assert = require("chai").assert
 
-const cli = require("../app/lib/cli")
-const log = require("../app/lib/log")
+const cli = require("../app/lib/main/cli")
+const log = require("../app/lib/logMain")
 
 const lib = require("./testLib")
 const mocking = require("./mocking")

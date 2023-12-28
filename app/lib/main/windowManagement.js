@@ -21,7 +21,7 @@ function createWindow(filePath) {
         },
     })
     window.on("close", () => delete _windows[filePath])
-    window.loadFile(path.join(__dirname, "..", "index.html"))
+    window.loadFile(path.join(__dirname, "..", "..", "index.html"))
     return window
 }
 
