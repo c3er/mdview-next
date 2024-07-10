@@ -20,64 +20,7 @@
     "start": "electron . --log-dir logs",
     "test": "eslint . --max-warnings 0 && prettier --check . && mocha --timeout 20000",
     "format": "prettier --write .",
-    "dist": "electron-builder"
-  },
-  "build": {
-    "artifactName": "${name}-${version}-${arch}.${ext}",
-    "files": [
-      "!**/node_modules/*.md",
-      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
-      "!**/node_modules/*.d.ts",
-      "!.storage/*",
-      "!.vscode/*",
-      "!logs/*",
-      "!test/*",
-      "!.prettier*",
-      "!tmp.md"
-    ],
-    "nsis": {
-      "allowElevation": true,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": false,
-      "license": "LICENSE",
-      "oneClick": false,
-      "perMachine": false,
-      "shortcutName": "Markdown Viewer"
-    },
-    "dmg": {
-      "title": "Markdown Viewer"
-    },
-    "linux": {
-      "target": [
-        "AppImage"
-      ]
-    },
-    "mac": {
-      "target": [
-        "dmg"
-      ],
-      "category": "public.app-category.utilities",
-      "icon": "app/assets/icon/md.icns"
-    },
-    "win": {
-      "target": [
-        "nsis",
-        "zip"
-      ],
-      "icon": "app/assets/icon/md.ico"
-    },
-    "fileAssociations": [
-      {
-        "name": "Markdown file",
-        "ext": ".md",
-        "icon": "app/assets/icon/md.ico"
-      },
-      {
-        "name": "Markdown file",
-        "ext": ".markdown",
-        "icon": "app/assets/icon/md.ico"
-      }
-    ]
+    "dist": "electron-builder --config build/deployConfig.js"
   },
   "dependencies": {
     "@node-ipc/node-ipc": "11.0.3",
