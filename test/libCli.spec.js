@@ -1,4 +1,4 @@
-const assert = require("chai").assert
+const assert = require("assert")
 
 const cli = require("../app/lib/main/cli")
 const log = require("../app/lib/logMain")
@@ -24,11 +24,11 @@ describe("Command line interface", () => {
     })
 
     it("recognizes test flag", () => {
-        assert.isTrue(cli.parse(["--test"]).isTest)
+        assert(cli.parse(["--test"]).isTest)
     })
 
     it("recognizes main process flag", () => {
-        assert.isTrue(cli.parse(["--main"]).isMainProcess)
+        assert(cli.parse(["--main"]).isMainProcess)
     })
 
     it("lets change the log directory", () => {

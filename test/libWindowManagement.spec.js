@@ -1,4 +1,4 @@
-const assert = require("chai").assert
+const assert = require("assert")
 
 const windowManagement = require("../app/lib/main/windowManagement")
 
@@ -11,7 +11,7 @@ describe("Window management", () => {
         const windows = windowManagement.windows()
         assert.strictEqual(Object.keys(windows).length, 1)
         assert.strictEqual(windowManagement.lastOpenedFilePath(), file)
-        assert.exists(windows[file])
+        assert(Boolean(windows[file]))
         return windows
     }
 
@@ -29,7 +29,7 @@ describe("Window management", () => {
         windowManagement.open(file)
 
         const windows = assertOpenedWithSingleFile(file)
-        assert.notExists(windows[defaultFile])
+        assert(!windows[defaultFile])
     })
 
     it("focuses existing window if opened with same file again", () => {
@@ -40,7 +40,7 @@ describe("Window management", () => {
 
         windowManagement.open(file)
         const windows = assertOpenedWithSingleFile(file)
-        assert.isTrue(windows[file].focusIsCalled)
+        assert(windows[file].focusIsCalled)
     })
 
     it("closes a window", () => {
@@ -51,7 +51,7 @@ describe("Window management", () => {
 
         windowManagement.close(file)
         assert.strictEqual(Object.keys(windowManagement.windows()).length, 0)
-        assert.isTrue(openedWindow.closeIsCalled)
+        assert(openedWindow.closeIsCalled)
     })
 
     it("throws an error at attempt to close a non existing window", () => {

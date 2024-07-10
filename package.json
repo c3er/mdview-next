@@ -89,7 +89,6 @@
     "yargs": "17.7.2"
   },
   "devDependencies": {
-    "chai": "4.3.10",
     "electron": "27.1.0",
     "electron-builder": "24.6.4",
     "eslint": "8.54.0",

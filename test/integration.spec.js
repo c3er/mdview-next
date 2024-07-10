@@ -1,8 +1,8 @@
+const assert = require("assert")
 const childProcess = require("child_process")
 const fs = require("fs/promises")
 const path = require("path")
 
-const assert = require("chai").assert
 const electronPath = require("electron")
 const playwright = require("playwright")
 
@@ -105,7 +105,7 @@ describe("Process handling", () => {
     }
 
     async function assertProcessExited(proc) {
-        assert.isTrue(await waitFor(resolve => proc.on("exit", resolve)))
+        assert(await waitFor(resolve => proc.on("exit", resolve)))
         assert.strictEqual(proc.exitCode, 0)
     }
 
@@ -118,7 +118,7 @@ describe("Process handling", () => {
             await assertProcessExited(startedProcess)
 
             const mainProcessMessage = findLogEntries(await readLog(), MAIN_PROCESS_MESSAGE)[0]
-            assert.exists(mainProcessMessage)
+            assert(Boolean(mainProcessMessage))
 
             process.kill(Number(mainProcessMessage.split(" ").at(-1)))
         } finally {
@@ -134,12 +134,12 @@ describe("Process handling", () => {
             await assertProcessExited(startedProcess)
 
             const mainProcessMessage = findLogEntries(await readLog(), MAIN_PROCESS_MESSAGE)[0]
-            assert.exists(mainProcessMessage)
+            assert(Boolean(mainProcessMessage))
 
             mainPid = Number(mainProcessMessage.split(" ").at(-1))
-            assert.isTrue(processExists(mainPid))
+            assert(processExists(mainPid))
 
-            assert.isTrue(
+            assert(
                 await waitFor(async waitInfo => {
                     while (!waitInfo.timeoutHasOccurred) {
                         if (findLogEntries(await readLog(), SERVER_STARTED_MESSAGE)[0]) {
@@ -155,11 +155,11 @@ describe("Process handling", () => {
 
             const expectedDataMessageCount = 2
             const jsonRegex = /\{\s*id.*messageId.*data.*\}/s
-            assert.isTrue(
+            assert(
                 await waitFor(async waitInfo => {
                     while (!waitInfo.timeoutHasOccurred) {
                         const logEntries = await readLog()
-                        assert.exists(findLogEntries(logEntries, "Process already running")[0])
+                        assert(Boolean(findLogEntries(logEntries, "Process already running")[0]))
 
                         const dataMessages = findLogEntries(logEntries, jsonRegex)
                         if (dataMessages.length === expectedDataMessageCount) {
@@ -188,6 +188,6 @@ describe("Integration tests with single app instance", () => {
     after(async () => await _app.close())
 
     it("opens a window", () => {
-        assert.exists(_page)
+        assert(Boolean(_page))
     })
 })
