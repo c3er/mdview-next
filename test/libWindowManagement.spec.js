@@ -1,5 +1,6 @@
 const assert = require("assert")
 
+const menu = require("../app/lib/menuMain")
 const windowManagement = require("../app/lib/main/windowManagement")
 
 const mocking = require("./mocking")
@@ -15,7 +16,11 @@ describe("Window management", () => {
         return windows
     }
 
-    beforeEach(() => windowManagement.init(defaultFile, mocking.createElectron()))
+    beforeEach(() => {
+        const electronMock = mocking.createElectron()
+        menu.init(electronMock)
+        windowManagement.init(defaultFile, electronMock)
+    })
 
     afterEach(windowManagement.reset)
 
@@ -40,7 +45,7 @@ describe("Window management", () => {
 
         windowManagement.open(file)
         const windows = assertOpenedWithSingleFile(file)
-        assert(windows[file].focusIsCalled)
+        assert(windows[file].electronWindow.focusIsCalled)
     })
 
     it("closes a window", () => {
@@ -51,7 +56,7 @@ describe("Window management", () => {
 
         windowManagement.close(file)
         assert.strictEqual(Object.keys(windowManagement.windows()).length, 0)
-        assert(openedWindow.closeIsCalled)
+        assert(openedWindow.electronWindow.closeIsCalled)
     })
 
     it("throws an error at attempt to close a non existing window", () => {

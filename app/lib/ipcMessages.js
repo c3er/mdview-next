@@ -3,5 +3,6 @@ exports.extern = {
 }
 
 exports.intern = {
+    closeWindow: "close-window",
     fetchDocumentPath: "fetch-document-path",
 }

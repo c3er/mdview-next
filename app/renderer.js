@@ -3,6 +3,7 @@ const fs = require("fs/promises")
 const documentRendering = require("./lib/renderer/documentRendering")
 const ipc = require("./lib/ipcRenderer")
 const log = require("./lib/logRenderer")
+const menu = require("./lib/menuRenderer")
 
 let _domIsLoaded = false
 
@@ -18,7 +19,9 @@ addEventListener("DOMContentLoaded", domContentLoadedHandler)
 
 // Before first load
 ;(() => {
+    ipc.init()
     log.debug("Initializing...")
+    menu.init()
     documentRendering.reset()
 
     const FIRST_LOAD_INTERVAL_TIME_MS = 5
@@ -33,6 +36,7 @@ addEventListener("DOMContentLoaded", domContentLoadedHandler)
         if (!documentPath) {
             return
         }
+        log.debug(`Got path: ${documentPath}`)
 
         document.querySelector("article#content-body").innerHTML = documentRendering.render(
             await fs.readFile(documentPath, { encoding: "utf-8" }),

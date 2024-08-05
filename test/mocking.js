@@ -15,6 +15,12 @@ class BrowserWindow {
     }
 }
 
+class Menu {
+    static buildFromTemplate() {
+        return new Menu()
+    }
+}
+
 class Electron {
     app = {
         getPath() {
@@ -23,6 +29,7 @@ class Electron {
     }
 
     BrowserWindow = BrowserWindow
+    Menu = Menu
 }
 
 exports.createElectron = () => new Electron()

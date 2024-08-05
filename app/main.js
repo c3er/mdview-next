@@ -6,6 +6,7 @@ const electron = require("electron")
 const cli = require("./lib/main/cli")
 const ipc = require("./lib/ipcMain")
 const log = require("./lib/logMain")
+const menu = require("./lib/menuMain")
 const windowManagement = require("./lib/main/windowManagement")
 
 let _ipcConnectionAttempts = ipc.extern.CONNECTION_ATTEMPTS
@@ -35,8 +36,8 @@ function initElectron() {
         }
     })
 
+    // Specific for macOS
     electron.app.on("activate", () => {
-        // XXX Not tried yet
         if (electron.BrowserWindow.getAllWindows().length === 0) {
             windowManagement.open()
         }
@@ -79,9 +80,12 @@ electron.app.whenReady().then(async () => {
     )
     _isMainProcess = cliArgs.isMainProcess
 
-    await log.init(cliArgs.logDir, _isMainProcess)
-    windowManagement.init(cli.defaults.filePath)
     const filePath = cliArgs.filePath
+
+    ipc.init()
+    await log.init(cliArgs.logDir, _isMainProcess)
+    menu.init()
+    windowManagement.init(cli.defaults.filePath)
 
     if (cliArgs.isTest) {
         log.debug("Called in test mode...")
@@ -89,12 +93,6 @@ electron.app.whenReady().then(async () => {
         windowManagement.open(filePath)
         return
     }
-
-    const ipcNodeConfig = ipc.extern.node.config
-    ipcNodeConfig.id = ipc.extern.SERVER_ID
-    ipcNodeConfig.retry = 5
-    ipcNodeConfig.maxRetries = ipc.extern.CONNECTION_ATTEMPTS
-    ipcNodeConfig.silent = true
 
     ipc.extern.node.connectTo(ipc.extern.SERVER_ID, () => {
         const connection = ipc.extern.node.of[ipc.extern.SERVER_ID]
