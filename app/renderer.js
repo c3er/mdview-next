@@ -41,7 +41,7 @@ addEventListener("DOMContentLoaded", domContentLoadedHandler)
         document.querySelector("article#content-body").innerHTML = documentRendering.render(
             await fs.readFile(documentPath, { encoding: "utf-8" }),
         )
-        log.info(`Rendered document "${documentPath}"`)
+        log.info("Rendered document")
 
         clearInterval(intervalId)
     }, FIRST_LOAD_INTERVAL_TIME_MS)
