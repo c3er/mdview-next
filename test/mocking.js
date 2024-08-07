@@ -1,5 +1,7 @@
 const assert = require("assert")
 
+const common = require("../app/lib/common")
+
 class IpcChannel {
     _targetCallbacks = []
     _sourceAssertionCallbacks = []
@@ -153,5 +155,156 @@ exports.ipc = {
     },
     sendToRenderer(message, event, ...args) {
         _ipcToRendererChannels.send(message, event, ...args)
+    },
+}
+
+exports.elements = {
+    mainMenu: {
+        application: common.isMacOS()
+            ? {
+                  label: "mdview",
+                  sub: {
+                      about: {
+                          label: "&About",
+                      },
+                      settings: {
+                          label: "&Settings...",
+                      },
+                  },
+              }
+            : {},
+        file: {
+            label: "&File",
+            sub: {
+                open: {
+                    label: "&Open",
+                },
+                print: {
+                    label: "&Print",
+                },
+                recentFiles: {
+                    label: "Recent Files",
+                },
+                clearRecentFiles: {
+                    label: "Clear Recent Files List",
+                },
+                quit: !common.isMacOS()
+                    ? {
+                          label: "&Quit",
+                      }
+                    : {},
+            },
+        },
+        edit: {
+            label: "&Edit",
+            sub: {
+                copy: {
+                    label: "Copy",
+                },
+                find: {
+                    label: "&Find...",
+                },
+                findNext: {
+                    label: "Find &next",
+                    isEnabled: false,
+                },
+                findPrevious: {
+                    label: "Find &previous",
+                    isEnabled: false,
+                },
+                settings: {
+                    label: "&Settings...",
+                },
+            },
+        },
+        view: {
+            label: "&View",
+            sub: {
+                back: {
+                    label: "&Back",
+                    isEnabled: false,
+                },
+                forward: {
+                    label: "&Forward",
+                    isEnabled: false,
+                },
+                refresh: {
+                    label: "&Refresh",
+                },
+                unblock: {
+                    label: "&Unblock All External Content",
+                },
+                rawText: {
+                    label: "&View Raw Text",
+                },
+                toc: {
+                    label: "Table Of &Content",
+                    sub: {
+                        tocApplication: {
+                            label: "Show For &All Documents",
+                            isChecked: false,
+                        },
+                        tocDocument: {
+                            label: "Show For &This Document",
+                            isChecked: false,
+                        },
+                        forgetDocumentToc: {
+                            label: "Forget Document Override",
+                            isEnabled: false,
+                        },
+                    },
+                },
+                zoom: {
+                    label: "&Zoom",
+                    sub: {
+                        zoomIn: {
+                            label: "Zoom &In",
+                        },
+                        zoomOut: {
+                            label: "Zoom &Out",
+                        },
+                        resetZoom: {
+                            label: "&Reset Zoom",
+                        },
+                    },
+                },
+            },
+        },
+        encoding: {
+            label: "En&coding",
+            sub: {},
+        },
+        tools: {
+            label: "&Tools",
+            sub: {
+                developer: {
+                    label: "&Developer Tools",
+                },
+                debug: {
+                    label: "De&bug",
+                    sub: {
+                        throwException: {
+                            label: "Throw e&xception",
+                        },
+                        showError: {
+                            label: "Show &error dialog",
+                        },
+                        softReload: {
+                            label: "Soft &reload",
+                        },
+                    },
+                },
+            },
+        },
+        help: !common.isMacOS()
+            ? {
+                  label: "&Help",
+                  sub: {
+                      about: {
+                          label: "&About",
+                      },
+                  },
+              }
+            : {},
     },
 }

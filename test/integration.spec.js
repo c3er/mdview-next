@@ -7,7 +7,9 @@ const electronPath = require("electron")
 const playwright = require("playwright")
 
 const lib = require("./testLib")
+const mocking = require("./mocking")
 
+const common = require("../app/lib/common")
 const log = require("../app/lib/logMain")
 
 const electron = playwright._electron
@@ -189,5 +191,47 @@ describe("Integration tests with single app instance", () => {
 
     it("opens a window", () => {
         assert(Boolean(_page))
+    })
+
+    describe("Main menu", () => {
+        async function searchMenuItem(menuItemPath) {
+            return await _app.evaluate(({ Menu }, itemPath) => {
+                let menu = Menu.getApplicationMenu()
+                let item
+                for (const label of itemPath) {
+                    item = menu.items.find(item => item.label === label)
+                    menu = item.submenu
+                }
+                return {
+                    label: item.label, // For debugging
+                    enabled: item.enabled ?? true,
+                    checked: item.checked,
+                }
+            }, menuItemPath)
+        }
+
+        function assertMenu(menu, itemPath) {
+            for (const [, currentItem] of Object.entries(menu)) {
+                if (common.isEmptyObject(currentItem)) {
+                    continue
+                }
+                const currentItemLabel = currentItem.label
+                const currentItemPath = [...itemPath, currentItemLabel]
+                describe(`Menu item "${currentItemLabel}"`, () => {
+                    it("exists", async () => {
+                        assert(Boolean(await searchMenuItem(currentItemPath)))
+                    })
+
+                    // XXX Application needs to be initialized to do further assertions
+
+                    const subMenu = currentItem.sub
+                    if (subMenu) {
+                        assertMenu(subMenu, currentItemPath)
+                    }
+                })
+            }
+        }
+
+        assertMenu(mocking.elements.mainMenu, [])
     })
 })
