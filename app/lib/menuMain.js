@@ -8,7 +8,7 @@ function sendToRenderer(window, id) {
 
 exports.init = electronMock => (electron = electronMock ?? require("electron"))
 
-exports.create = (id, selectWindow) =>
+exports.create = window =>
     electron.Menu.buildFromTemplate([
         {
             label: electron.app.name,
@@ -16,7 +16,7 @@ exports.create = (id, selectWindow) =>
                 {
                     label: "&About",
                     click() {
-                        sendToRenderer(selectWindow(id), shared.id.about)
+                        sendToRenderer(window, shared.id.about)
                     },
                 },
                 { type: "separator" },
@@ -24,14 +24,14 @@ exports.create = (id, selectWindow) =>
                     label: "Close window",
                     accelerator: "CmdOrCtrl+W",
                     click() {
-                        selectWindow(id).close()
+                        window.close()
                     },
                 },
                 {
                     label: "Developer tools",
                     accelerator: "F10",
                     click() {
-                        selectWindow(id).openDevTools()
+                        window.openDevTools()
                     },
                 },
                 {

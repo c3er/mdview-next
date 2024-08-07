@@ -22,7 +22,7 @@ class Window {
     constructor(filePath) {
         this._electronWindow = this._createElectronWindow()
         this.filePath = filePath
-        this.menu = menu.create(filePath, filePath => Window.instances[filePath])
+        this.menu = menu.create(this)
         this._storeInstance()
     }
 
