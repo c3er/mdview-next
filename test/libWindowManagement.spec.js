@@ -17,6 +17,7 @@ describe("Window management", () => {
     }
 
     beforeEach(() => {
+        mocking.cleanup()
         const electronMock = mocking.createElectron()
         menu.init(electronMock)
         windowManagement.init(defaultFile, electronMock)

@@ -8,10 +8,7 @@ function handle(id, callback) {
 }
 
 exports.init = () => {
-    handle(shared.id.about, () => {
-        log.debug('Menu entry "About" called')
-        console.debug('Menu entry "About" called')
-    })
+    handle(shared.id.about, () => log.debug('Menu entry "About" called'))
     handle(shared.id.close, () => {
         log.debug("Closing window...")
         ipc.send(ipc.messages.intern.closeWindow)
