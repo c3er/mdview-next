@@ -14,37 +14,47 @@ let _lastOpenedFilePath
 class Window {
     static instances = {}
 
+    _electronWindow
+
     filePath
-    electronWindow
     menu
 
     constructor(filePath) {
+        this._electronWindow = this._createElectronWindow()
         this.filePath = filePath
-        this.electronWindow = this._createElectronWindow()
         this.menu = menu.create(filePath, filePath => Window.instances[filePath])
         this._storeInstance()
     }
 
+    // For testing
+    get focusIsCalled() {
+        return this._electronWindow.focusIsCalled
+    }
+
+    // For testing
+    get closeIsCalled() {
+        return this._electronWindow.closeIsCalled
+    }
+
     focus() {
-        this.electronWindow.focus()
+        this._electronWindow.focus()
     }
 
     close() {
-        this.electronWindow.close()
+        this._electronWindow.close()
         this._deleteInstance()
     }
 
     send(messageId, ...args) {
-        ipc.send(this.electronWindow, messageId, ...args)
+        ipc.send(this._electronWindow, messageId, ...args)
     }
 
     openDevTools() {
-        this.electronWindow.webContents.openDevTools()
+        this._electronWindow.webContents.openDevTools()
     }
 
     static open(filePath) {
-        const window = Window.instances[filePath] ?? new Window(filePath)
-        window.focus()
+        ;(Window.instances[filePath] ?? new Window(filePath)).focus()
     }
 
     static byFilePath(filePath) {
@@ -57,7 +67,7 @@ class Window {
 
     static byElectronId(id) {
         return Object.values(Window.instances).find(
-            window => window.electronWindow.webContents.id === id,
+            window => window._electronWindow.webContents.id === id,
         )
     }
 
@@ -72,10 +82,6 @@ class Window {
 
     _deleteInstance() {
         delete Window.instances[this.filePath]
-    }
-
-    _getInstance() {
-        return Window.instances[this.filePath]
     }
 
     _updateMenu() {

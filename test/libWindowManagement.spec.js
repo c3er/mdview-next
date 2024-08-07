@@ -45,7 +45,7 @@ describe("Window management", () => {
 
         windowManagement.open(file)
         const windows = assertOpenedWithSingleFile(file)
-        assert(windows[file].electronWindow.focusIsCalled)
+        assert(windows[file].focusIsCalled)
     })
 
     it("closes a window", () => {
@@ -56,7 +56,7 @@ describe("Window management", () => {
 
         windowManagement.close(file)
         assert.strictEqual(Object.keys(windowManagement.windows()).length, 0)
-        assert(openedWindow.electronWindow.closeIsCalled)
+        assert(openedWindow.closeIsCalled)
     })
 
     it("throws an error at attempt to close a non existing window", () => {
