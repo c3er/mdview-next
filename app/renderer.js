@@ -5,44 +5,49 @@ const ipc = require("./lib/ipcRenderer")
 const log = require("./lib/logRenderer")
 const menu = require("./lib/menuRenderer")
 
-let _domIsLoaded = false
+const UPDATE_INTERVAL_MS = 1000
 
 async function fetchDocumentPath() {
     return await ipc.invoke(ipc.messages.intern.fetchDocumentPath)
 }
 
-function domContentLoadedHandler() {
-    _domIsLoaded = true
+async function renderDocument(documentPath) {
+    document.querySelector("article#content-body").innerHTML = documentRendering.render(
+        await fs.readFile(documentPath, { encoding: "utf-8" }),
+    )
 }
 
+function watchDocument(documentPath) {
+    log.debug(`Setup automatic update of document "${documentPath}"...`)
+    let lastModificationTime = 0
+    setInterval(async () => {
+        try {
+            const modificationTime = (await fs.stat(documentPath)).mtimeMs
+            if (lastModificationTime === 0) {
+                lastModificationTime = modificationTime
+            }
+            if (modificationTime !== lastModificationTime) {
+                log.debug(`Reloading "${documentPath}"...`)
+                lastModificationTime = modificationTime
+                await renderDocument(documentPath)
+            }
+        } catch (err) {
+            log.error(`Error at watching "${documentPath}": ${err}`)
+        }
+    }, UPDATE_INTERVAL_MS)
+}
+
+async function domContentLoadedHandler() {
+    const documentPath = await fetchDocumentPath()
+    log.debug(`Got path: ${documentPath}`)
+    await renderDocument(documentPath)
+    log.info("Rendered document")
+    watchDocument(documentPath)
+}
+
+ipc.init()
+log.debug("Initializing...")
+menu.init()
+documentRendering.reset()
+
 addEventListener("DOMContentLoaded", domContentLoadedHandler)
-
-// Before first load
-;(() => {
-    ipc.init()
-    log.debug("Initializing...")
-    menu.init()
-    documentRendering.reset()
-
-    const FIRST_LOAD_INTERVAL_TIME_MS = 5
-    const intervalId = setInterval(async () => {
-        log.debug("Waiting for document to load...")
-
-        if (!_domIsLoaded) {
-            return
-        }
-
-        const documentPath = await fetchDocumentPath()
-        if (!documentPath) {
-            return
-        }
-        log.debug(`Got path: ${documentPath}`)
-
-        document.querySelector("article#content-body").innerHTML = documentRendering.render(
-            await fs.readFile(documentPath, { encoding: "utf-8" }),
-        )
-        log.info("Rendered document")
-
-        clearInterval(intervalId)
-    }, FIRST_LOAD_INTERVAL_TIME_MS)
-})()
