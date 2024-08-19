@@ -4,17 +4,12 @@ const documentRendering = require("./lib/renderer/documentRendering")
 const ipc = require("./lib/ipcRenderer")
 const log = require("./lib/logRenderer")
 const menu = require("./lib/menuRenderer")
+const statusBar = require("./lib/renderer/statusBar")
 
 const UPDATE_INTERVAL_MS = 1000
 
 async function fetchDocumentPath() {
     return await ipc.invoke(ipc.messages.intern.fetchDocumentPath)
-}
-
-async function renderDocument(documentPath) {
-    document.querySelector("article#content-body").innerHTML = documentRendering.render(
-        await fs.readFile(documentPath, { encoding: "utf-8" }),
-    )
 }
 
 function watchDocument(documentPath) {
@@ -29,7 +24,7 @@ function watchDocument(documentPath) {
             if (modificationTime !== lastModificationTime) {
                 log.debug(`Reloading "${documentPath}"...`)
                 lastModificationTime = modificationTime
-                await renderDocument(documentPath)
+                await documentRendering.render(documentPath)
             }
         } catch (err) {
             log.error(`Error at watching "${documentPath}": ${err}`)
@@ -40,7 +35,7 @@ function watchDocument(documentPath) {
 async function domContentLoadedHandler() {
     const documentPath = await fetchDocumentPath()
     log.debug(`Got path: ${documentPath}`)
-    await renderDocument(documentPath)
+    await documentRendering.render(documentPath)
     log.info("Rendered document")
     watchDocument(documentPath)
 }
@@ -48,6 +43,7 @@ async function domContentLoadedHandler() {
 ipc.init()
 log.debug("Initializing...")
 menu.init()
-documentRendering.reset()
+statusBar.init(document)
+documentRendering.init(document)
 
 addEventListener("DOMContentLoaded", domContentLoadedHandler)
