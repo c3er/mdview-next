@@ -1,5 +1,7 @@
 const path = require("path")
 
+const hljs = require("highlight.js")
+
 const common = require("../common")
 const fileLib = require("../file")
 const log = require("../logRenderer")
@@ -61,12 +63,77 @@ function isInContainer(element, containerId) {
     return false
 }
 
+function generateCodeText(text, options = {}) {
+    options = {
+        isHighlighted: false,
+        ...options,
+    }
+
+    const preClass = options.isHighlighted ? `class="${options.isHighlighted ? "hljs" : ""}"` : ""
+    return `<pre ${preClass}><code>${text}</code></pre>`
+}
+
 function reset() {
     _markdown = require("markdown-it")({
+        highlight(text, language) {
+            if (language.toLowerCase() === "mermaid") {
+                return `<pre class="mermaid">${text}</pre>`
+            }
+
+            // Originated from VS Code
+            // File extensions/markdown-language-features/src/markdownEngine.ts
+            // Commit ID: 3fbfccad359e278a4fbde106328b2b8e2e2242a7
+            if (language && hljs.getLanguage(language)) {
+                return generateCodeText(
+                    hljs.highlight(text, {
+                        language: language,
+                        ignoreIllegals: true,
+                    }).value,
+                    { isHighlighted: true },
+                )
+            }
+            return generateCodeText(_markdown.utils.escapeHtml(text), { isHighlighted: true })
+        },
         xhtmlOut: true,
         html: true,
         linkify: true,
+        breaks: false, // TODO To be taken from settings
+        typographer: true, // TODO To be taken from settings
     })
+
+    _markdown
+        .use(require("markdown-it-anchor"), {
+            callback(_, info) {
+                // toc.addHeader(info.title, info.slug)
+                log.debug(info)
+            },
+        })
+        .use(require("markdown-it-html5-embed"), {
+            html5embed: {
+                attributes: {
+                    audio: "controls",
+                    video: 'width="500" controls',
+                },
+            },
+        })
+        .use(require("markdown-it-multimd-table"), {
+            headerless: true,
+            multiline: true,
+            rowspan: true,
+        })
+        .use(require("markdown-it-abbr"))
+        .use(require("markdown-it-container"), "error")
+        .use(require("markdown-it-container"), "info")
+        .use(require("markdown-it-container"), "warning")
+        .use(require("markdown-it-footnote"))
+        .use(require("markdown-it-mark"))
+        .use(require("markdown-it-new-katex"))
+        .use(require("markdown-it-sub"))
+        .use(require("markdown-it-sup"))
+        .use(require("markdown-it-task-checkbox"), { disabled: false })
+
+    // TODO Emojis have to be en- or disabled via the settings
+    _markdown.use(require("../../../node_modules/markdown-it-emoji/dist/markdown-it-emoji.js"))
 }
 
 exports.init = document => {
