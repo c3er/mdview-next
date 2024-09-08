@@ -1,10 +1,10 @@
 const fs = require("fs/promises")
 
-const documentRendering = require("./lib/renderer/documentRendering")
+const documentRendering = require("./lib/documentRenderingRenderer")
 const ipc = require("./lib/ipcRenderer")
 const log = require("./lib/logRenderer")
 const menu = require("./lib/menuRenderer")
-const statusBar = require("./lib/renderer/statusBar")
+const statusBar = require("./lib/statusBarRenderer")
 
 const UPDATE_INTERVAL_MS = 1000
 

@@ -2,10 +2,10 @@ const path = require("path")
 
 const hljs = require("highlight.js")
 
-const common = require("../common")
-const fileLib = require("../file")
-const log = require("../logRenderer")
-const statusBar = require("./statusBar")
+const common = require("./common.js")
+const fileLib = require("./file.js")
+const log = require("./logRenderer.js")
+const statusBar = require("./statusBarRenderer.js")
 
 let _markdown
 let _document
@@ -133,7 +133,7 @@ function reset() {
         .use(require("markdown-it-task-checkbox"), { disabled: false })
 
     // TODO Emojis have to be en- or disabled via the settings
-    _markdown.use(require("../../../node_modules/markdown-it-emoji/dist/markdown-it-emoji.js"))
+    _markdown.use(require("markdown-it-emoji/dist/markdown-it-emoji.js"))
 }
 
 exports.init = document => {

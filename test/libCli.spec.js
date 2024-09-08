@@ -1,6 +1,6 @@
 const assert = require("assert")
 
-const cli = require("../app/lib/main/cli")
+const cli = require("../app/lib/cliMain")
 const log = require("../app/lib/logMain")
 
 const lib = require("./testLib")

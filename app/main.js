@@ -3,11 +3,11 @@ const fs = require("fs")
 
 const electron = require("electron")
 
-const cli = require("./lib/main/cli")
+const cli = require("./lib/cliMain")
 const ipc = require("./lib/ipcMain")
 const log = require("./lib/logMain")
 const menu = require("./lib/menuMain")
-const windowManagement = require("./lib/main/windowManagement")
+const windowManagement = require("./lib/windowManagementMain")
 
 let _ipcConnectionAttempts = ipc.extern.CONNECTION_ATTEMPTS
 let _isMainProcess = false

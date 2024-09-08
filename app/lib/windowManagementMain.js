@@ -1,7 +1,7 @@
 const path = require("path")
 
-const ipc = require("../ipcMainIntern")
-const menu = require("../menuMain")
+const ipc = require("./ipcMainIntern")
+const menu = require("./menuMain")
 
 let electron
 
@@ -100,7 +100,7 @@ class Window {
         })
         window.on("close", () => this._deleteInstance())
         window.on("focus", () => this._updateMenu())
-        window.loadFile(path.join(__dirname, "..", "..", "index.html"))
+        window.loadFile(path.join(__dirname, "..", "index.html"))
         return window
     }
 }

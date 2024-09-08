@@ -1,7 +1,7 @@
 const assert = require("assert")
 
 const menu = require("../app/lib/menuMain")
-const windowManagement = require("../app/lib/main/windowManagement")
+const windowManagement = require("../app/lib/windowManagementMain")
 
 const mocking = require("./mocking")
 
