@@ -1,3 +1,4 @@
+const lib = require("./testLib")
 const mocking = require("./mocking")
 
 describe("Menu module", () => {
@@ -9,8 +10,7 @@ describe("Menu module", () => {
 
         beforeEach(() => {
             mocking.cleanup()
-            mocking.ipc.register.mainOn("__ELECTRON_LOG__")
-
+            lib.registerElectronLogIpc()
             ipc.init(mocking.createElectron())
             menu.init()
         })

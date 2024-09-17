@@ -1,3 +1,4 @@
+const fs = require("fs/promises")
 const path = require("path")
 
 const hljs = require("highlight.js")
@@ -136,8 +137,8 @@ function reset() {
     _markdown.use(require("markdown-it-emoji/dist/markdown-it-emoji.js"))
 }
 
-exports.init = document => {
-    _document = document
+exports.init = documentMock => {
+    _document = documentMock
     reset()
 }
 

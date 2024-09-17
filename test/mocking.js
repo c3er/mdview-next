@@ -122,6 +122,30 @@ class Electron {
     Menu = Menu
 }
 
+class HtmlElement {
+    innerHTML = ""
+
+    getAttribute() {
+        return ""
+    }
+}
+
+class Document {
+    htmlElement
+
+    constructor(htmlElement) {
+        this.htmlElement = htmlElement
+    }
+
+    getElementsByTagName() {
+        return [this.htmlElement]
+    }
+
+    querySelector() {
+        return this.htmlElement
+    }
+}
+
 const _ipcToMainChannels = new IpcChannelCollection("to-main-channel")
 const _ipcToRendererChannels = new IpcChannelCollection("to-renderer-channel")
 
@@ -308,3 +332,7 @@ exports.elements = {
             : {},
     },
 }
+
+exports.createDocument = htmlElement => new Document(htmlElement)
+
+exports.createHtmlElement = () => new HtmlElement()
