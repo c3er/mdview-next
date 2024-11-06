@@ -16,8 +16,6 @@ describe("Menu module", () => {
         })
 
         describe("Handlers", () => {
-            beforeEach(() => mocking.ipc.register.mainOn(ipc.messages.intern.closeWindow))
-
             for (const menuId of Object.values(menuShared.id)) {
                 it(`handles menu entry "${menuId}`, () => {
                     mocking.ipc.sendToRenderer(menuShared.ipcMessageId(menuId))

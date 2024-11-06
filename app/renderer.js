@@ -4,6 +4,8 @@ const documentRendering = require("./lib/documentRenderingRenderer")
 const ipc = require("./lib/ipcRenderer")
 const log = require("./lib/logRenderer")
 const menu = require("./lib/menuRenderer")
+const navigation = require("./lib/navigationRenderer")
+const renderer = require("./lib/commonRenderer")
 const statusBar = require("./lib/statusBarRenderer")
 
 const UPDATE_INTERVAL_MS = 1000
@@ -33,17 +35,22 @@ function watchDocument(documentPath) {
 }
 
 async function domContentLoadedHandler() {
+    ipc.init()
+    log.debug("Initializing...")
+    menu.init()
+    renderer.init(document)
+    statusBar.init(document)
+    documentRendering.init(document)
+    navigation.init(document)
+
     const documentPath = await fetchDocumentPath()
     log.debug(`Got path: ${documentPath}`)
+
     await documentRendering.render(documentPath)
     log.info("Rendered document")
+
+    renderer.contentElement().focus()
     watchDocument(documentPath)
 }
-
-ipc.init()
-log.debug("Initializing...")
-menu.init()
-statusBar.init(document)
-documentRendering.init(document)
 
 addEventListener("DOMContentLoaded", domContentLoadedHandler)

@@ -6,6 +6,7 @@ const hljs = require("highlight.js")
 const common = require("./common.js")
 const fileLib = require("./file.js")
 const log = require("./logRenderer.js")
+const navigation = require("./navigationRenderer.js")
 const statusBar = require("./statusBarRenderer.js")
 
 let _markdown
@@ -155,24 +156,8 @@ exports.render = async documentPath => {
     alterTags("a", link => {
         const target = link.getAttribute("href")
         if (target) {
-            // navigation.registerLink(link, target, documentDirectory)
-            // statusOnMouseOver(link, target)
+            navigation.registerLink(link, target, documentDirectory)
             statusBar.mouseOver(link, target)
-
-            link.onclick = event => {
-                event.preventDefault()
-                log.debug(
-                    `Link left clicked: target "${target}", document directory "${documentDirectory}"`,
-                )
-            }
-            link.onauxclick = event => {
-                event.preventDefault()
-                if (event.button === 1) {
-                    log.debug(
-                        `Link middle clicked: target "${target}", document directory "${documentDirectory}"`,
-                    )
-                }
-            }
         }
     })
     alterTags("img", image => {
