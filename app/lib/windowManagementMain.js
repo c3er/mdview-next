@@ -109,7 +109,6 @@ exports.init = (defaultFile, electronMock) => {
     electron = electronMock ?? require("electron")
     _defaultFilePath = defaultFile
 
-    ipc.listen(ipc.messages.intern.closeWindow, id => Window.byElectronId(id).close())
     ipc.listen(ipc.messages.intern.openFile, (_, filePath) => Window.open(filePath))
 }
 
