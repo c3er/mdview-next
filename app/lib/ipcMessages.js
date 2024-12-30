@@ -3,6 +3,7 @@ exports.extern = {
 }
 
 exports.intern = {
+    setMenuItemEnabled: "set-menu-item-enabled",
     fetchDocumentPath: "fetch-document-path",
     openFile: "open-file",
 }

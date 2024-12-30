@@ -13,9 +13,14 @@ describe("Navigation", () => {
     let htmlElement
 
     beforeEach(() => {
+        mocking.cleanup()
+        mocking.ipc.register.mainOn(ipc.messages.intern.setMenuItemEnabled)
+
         htmlElement = mocking.createHtmlElement()
-        ipc.init(mocking.electron)
-        navigation.init(mocking.electron)
+        const electron = mocking.createElectron()
+
+        ipc.init(electron)
+        navigation.init(mocking.createDocument(), electron)
     })
 
     it("gets events", () => {

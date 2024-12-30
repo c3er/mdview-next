@@ -2,17 +2,17 @@ const lib = require("./testLib")
 const mocking = require("./mocking")
 
 describe("Menu module", () => {
-    describe("Renderer part", () => {
+    describe("Handlers", () => {
         const ipc = require("../app/lib/ipcRenderer")
 
-        const menu = require("../app/lib/menuRenderer")
+        const menuHandling = require("../app/lib/menuHandlingRenderer")
         const menuShared = require("../app/lib/menuShared")
 
         beforeEach(() => {
             mocking.cleanup()
             lib.registerElectronLogIpc()
             ipc.init(mocking.createElectron())
-            menu.init()
+            menuHandling.init()
         })
 
         describe("Handlers", () => {

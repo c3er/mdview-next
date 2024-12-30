@@ -53,6 +53,10 @@ class Window {
         this._electronWindow.webContents.openDevTools()
     }
 
+    setMenuItemEnabled(itemId, isEnabled) {
+        this.menu.getMenuItemById(itemId).enabled = isEnabled
+    }
+
     static open(filePath) {
         ;(Window.instances[filePath] ?? new Window(filePath)).focus()
     }
@@ -110,6 +114,9 @@ exports.init = (defaultFile, electronMock) => {
     _defaultFilePath = defaultFile
 
     ipc.listen(ipc.messages.intern.openFile, (_, filePath) => Window.open(filePath))
+    ipc.listen(ipc.messages.intern.setMenuItemEnabled, (senderId, menuItemId, isEnabled) =>
+        Window.byElectronId(senderId).setMenuItemEnabled(menuItemId, isEnabled),
+    )
 }
 
 exports.open = filePath => {

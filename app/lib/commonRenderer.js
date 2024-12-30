@@ -8,6 +8,8 @@ exports.init = document => (_document = document)
 
 exports.contentElement = contentElement
 
+exports.currentScrollPosition = () => contentElement().scrollTop
+
 exports.scrollTo = position => (contentElement().scrollTop = position)
 
 exports.elementYPosition = element => {

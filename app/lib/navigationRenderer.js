@@ -4,11 +4,59 @@ const common = require("./common")
 const error = require("./errorRenderer")
 const file = require("./file")
 const ipc = require("./ipcRenderer")
+const menu = require("./menuRenderer")
 const renderer = require("./commonRenderer")
 
 let electron
 
 let _document
+
+const _locations = {
+    back: [],
+    forward: [],
+    current: null,
+}
+
+class Location {
+    scrollPosition
+    internalTarget
+
+    constructor(internalTarget) {
+        this.internalTarget = internalTarget
+    }
+}
+
+function allowBack(isAllowed) {
+    menu.setEnabled(menu.id.navigateBack, isAllowed)
+}
+
+function allowForward(isAllowed) {
+    menu.setEnabled(menu.id.navigateForward, isAllowed)
+}
+
+function clearBack() {
+    _locations.back.length = 0
+    allowBack(false)
+}
+
+function clearForward() {
+    _locations.forward.length = 0
+    allowForward(false)
+}
+
+function reset() {
+    clearBack()
+    clearForward()
+    _locations.current = null
+}
+
+function canGoBack() {
+    return _locations.back.length > 0
+}
+
+function canGoForward() {
+    return _locations.forward.length > 0
+}
 
 function isInternalLink(url) {
     return url.startsWith("#")
@@ -35,12 +83,38 @@ async function checkFile(filePath) {
     return true
 }
 
+function goStep(canGoCallback, pushDirection, popDirection) {
+    if (!canGoCallback()) {
+        return
+    }
+
+    const oldLocation = _locations.current
+    oldLocation.scrollPosition = renderer.currentScrollPosition()
+    pushDirection.push(oldLocation)
+
+    const destination = (_locations.current = popDirection.pop())
+
+    allowBack(canGoBack())
+    allowForward(canGoForward())
+
+    renderer.scrollTo(destination.scrollPosition)
+}
+
 function go(target) {
     const targetElement = _document.getElementById(target.replace("#", ""))
     if (!targetElement) {
         error.show(`Link target not found: ${target}`)
         return
     }
+
+    const oldLocation = _locations.current
+    oldLocation.scrollPosition = renderer.currentScrollPosition()
+    _locations.back.push(oldLocation)
+
+    clearForward()
+    _locations.current = new Location(target)
+    allowBack(canGoBack())
+
     renderer.scrollTo(renderer.elementYPosition(targetElement))
 }
 
@@ -64,6 +138,11 @@ async function dispatchLink(target, documentDirectory) {
 exports.init = (document, electronMock) => {
     electron = electronMock ?? require("electron")
     _document = document
+
+    reset()
+    allowBack(false)
+    allowForward(false)
+    _locations.current = new Location("")
 }
 
 exports.registerLink = (linkElement, target, documentDirectory) => {
@@ -72,3 +151,7 @@ exports.registerLink = (linkElement, target, documentDirectory) => {
         await dispatchLink(target, documentDirectory)
     }
 }
+
+exports.back = () => goStep(canGoBack, _locations.forward, _locations.back)
+
+exports.forward = () => goStep(canGoForward, _locations.back, _locations.forward)
