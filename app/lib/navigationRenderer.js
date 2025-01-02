@@ -155,3 +155,13 @@ exports.registerLink = (linkElement, target, documentDirectory) => {
 exports.back = () => goStep(canGoBack, _locations.forward, _locations.back)
 
 exports.forward = () => goStep(canGoForward, _locations.back, _locations.forward)
+
+// For testing
+
+exports.go = go
+
+exports.canGoBack = canGoBack
+
+exports.canGoForward = canGoForward
+
+exports.currentTarget = () => _locations.current?.internalTarget

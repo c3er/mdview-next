@@ -124,9 +124,22 @@ class Electron {
 
 class HtmlElement {
     innerHTML = ""
+    style = {
+        paddingTop: "",
+    }
+
+    get children() {
+        return [this]
+    }
 
     getAttribute() {
         return ""
+    }
+
+    getBoundingClientRect() {
+        return {
+            top: 0,
+        }
     }
 }
 
@@ -142,6 +155,10 @@ class Document {
     }
 
     querySelector() {
+        return this.htmlElement
+    }
+
+    getElementById() {
         return this.htmlElement
     }
 }
