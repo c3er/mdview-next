@@ -1,3 +1,4 @@
+const contentBlocking = require("./contentBlockingRenderer")
 const ipc = require("./ipcRenderer")
 const log = require("./logRenderer")
 const navigation = require("./navigationRenderer")
@@ -30,9 +31,7 @@ exports.init = () => {
     handle(shared.id.tocShowForThisDocument, () =>
         log.debug('Menu entry "TOC -> Show For This Document" called'),
     )
-    handle(shared.id.unblockAll, () =>
-        log.debug('Menu entry "Unblock All External Content" called'),
-    )
+    handle(shared.id.unblockAll, async () => await contentBlocking.unblockAll())
     handle(shared.id.zoomIn, () => log.debug('Menu entry "Zoom In" called'))
     handle(shared.id.zoomOut, () => log.debug('Menu entry "Zoom Out" called'))
     handle(shared.id.zoomReset, () => log.debug('Menu entry "Reset Zoom" called'))

@@ -1,5 +1,6 @@
 const assert = require("assert")
 
+const ipc = require("../app/lib/ipcMainIntern")
 const menu = require("../app/lib/menuMain")
 const windowManagement = require("../app/lib/windowManagementMain")
 
@@ -20,6 +21,7 @@ describe("Window management", () => {
         mocking.cleanup()
         const electronMock = mocking.createElectron()
         menu.init(electronMock)
+        ipc.init(electronMock)
         windowManagement.init(defaultFile, electronMock)
     })
 

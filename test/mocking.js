@@ -6,11 +6,16 @@ class IpcChannel {
     _targetCallbacks = []
     _sourceAssertionCallbacks = []
     _targetAssertionCallbacks = []
+    _invokeTargetCallback = null
 
     send(event, ...args) {
         this._targetCallbacks.forEach(callback => callback(event, ...args))
         this._sourceAssertionCallbacks.forEach(callback => callback(event, ...args))
         this._targetAssertionCallbacks.forEach(callback => callback(event, ...args))
+    }
+
+    invoke(event, ...args) {
+        return new Promise(resolve => resolve(this._invokeTargetCallback(event, ...args)))
     }
 
     addTarget(callback) {
@@ -77,6 +82,12 @@ class BrowserWindow {
         send(message, ...args) {
             _ipcToRendererChannels.send(message, _electronIpcEvent, ...args)
         },
+        session: {
+            webRequest: {
+                onBeforeRequest() {},
+                onBeforeRedirect() {},
+            },
+        },
     }
 
     on() {}
@@ -108,6 +119,9 @@ class Electron {
         on(message, callback) {
             _ipcToMainChannels.addTarget(message, callback)
         },
+        handle(message, callback) {
+            _ipcToMainChannels.addTarget(message, callback)
+        },
     }
     ipcRenderer = {
         on(message, callback) {
@@ -115,6 +129,9 @@ class Electron {
         },
         send(message, ...args) {
             _ipcToMainChannels.send(message, _electronIpcEvent, ...args)
+        },
+        async invoke(message, ...args) {
+            return await _ipcToMainChannels.invoke(message, _electronIpcEvent, ...args)
         },
     }
 
@@ -179,6 +196,9 @@ exports.createElectron = () => new Electron()
 exports.ipc = {
     register: {
         mainOn(message, callback) {
+            _ipcToMainChannels.addTargetAssertion(message, callback ?? (() => {}))
+        },
+        mainHandle(message, callback) {
             _ipcToMainChannels.addTargetAssertion(message, callback ?? (() => {}))
         },
         rendererOn(message, callback) {

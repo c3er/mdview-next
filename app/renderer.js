@@ -1,5 +1,6 @@
 const fs = require("fs/promises")
 
+const contentBlocking = require("./lib/contentBlockingRenderer")
 const documentRendering = require("./lib/documentRenderingRenderer")
 const ipc = require("./lib/ipcRenderer")
 const log = require("./lib/logRenderer")
@@ -42,6 +43,7 @@ async function domContentLoadedHandler() {
     statusBar.init(document)
     documentRendering.init(document)
     navigation.init(document)
+    contentBlocking.init(document, window)
 
     const documentPath = await fetchDocumentPath()
     log.debug(`Got path: ${documentPath}`)

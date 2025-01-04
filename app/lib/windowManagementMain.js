@@ -1,6 +1,8 @@
 const path = require("path")
 
+const contentBlocking = require("./contentBlockingMain")
 const ipc = require("./ipcMainIntern")
+const log = require("./logMain")
 const menu = require("./menuMain")
 
 let electron
@@ -15,12 +17,14 @@ class Window {
     static instances = {}
 
     _electronWindow
+    _contentBlocker
 
     filePath
     menu
 
     constructor(filePath) {
         this._electronWindow = this._createElectronWindow()
+        this._setupContentBlocking(this._electronWindow.webContents.session.webRequest)
         this.filePath = filePath
         this.menu = menu.create(this)
         this._storeInstance()
@@ -55,6 +59,10 @@ class Window {
 
     setMenuItemEnabled(itemId, isEnabled) {
         this.menu.getMenuItemById(itemId).enabled = isEnabled
+    }
+
+    unblock(url) {
+        this._contentBlocker.unblock(url)
     }
 
     static open(filePath) {
@@ -92,6 +100,33 @@ class Window {
         electron.Menu.setApplicationMenu(this.menu)
     }
 
+    _setupContentBlocking(webRequest) {
+        this._contentBlocker = contentBlocking.create(this)
+        let lastTime = Date.now()
+        webRequest.onBeforeRequest((details, callback) => {
+            const currentTime = Date.now()
+
+            const url = details.url
+            const isBlocked = this._contentBlocker.isBlocked(url)
+            log.info(
+                `${isBlocked ? "Blocked" : "Loading"}: ${url} (${
+                    currentTime - lastTime
+                } ms since last load)`,
+            )
+            callback({ cancel: isBlocked })
+            if (isBlocked) {
+                ipc.send(this._electronWindow, ipc.messages.intern.contentBlocked, url)
+            }
+
+            lastTime = currentTime
+        })
+        webRequest.onBeforeRedirect(details => {
+            const url = details.redirectURL
+            log.info(`Redirecting: ${url}`)
+            this.unblock(url)
+        })
+    }
+
     _createElectronWindow() {
         const window = new electron.BrowserWindow({
             width: WINDOW_WIDTH_DEFAULT,
@@ -116,6 +151,9 @@ exports.init = (defaultFile, electronMock) => {
     ipc.listen(ipc.messages.intern.openFile, (_, filePath) => Window.open(filePath))
     ipc.listen(ipc.messages.intern.setMenuItemEnabled, (senderId, menuItemId, isEnabled) =>
         Window.byElectronId(senderId).setMenuItemEnabled(menuItemId, isEnabled),
+    )
+    ipc.handle(ipc.messages.intern.unblockURL, (senderId, url) =>
+        Window.byElectronId(senderId).unblock(url),
     )
 }
 
