@@ -152,3 +152,16 @@ process.on("exit", code => {
         log.debug("Main process stopped")
     }
 })
+
+// Based on https://stackoverflow.com/a/50703424/13949398 (custom error window/handling in Electron)
+process.on("uncaughtException", error => {
+    log.error(`Unhandled error: ${error.stack}`)
+    if (!process.argv[0].includes("electron")) {
+        electron.dialog.showMessageBoxSync({
+            type: "error",
+            title: "Unhandled error (fault of Markdown Viewer)",
+            message: error.stack,
+        })
+    }
+    electron.app.exit(1)
+})
