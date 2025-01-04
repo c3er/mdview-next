@@ -28,7 +28,7 @@ try {
 const command = `npm start -- ${process.argv.slice(2).join(" ")}`
 childProcess.exec(command, err => {
     if (err) {
-        console.error(`Could not execute "${command}": err`)
+        console.error(`Could not execute "${command}": ${err}`)
         process.exit(1)
     }
 })
