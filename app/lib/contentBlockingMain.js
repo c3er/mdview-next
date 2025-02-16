@@ -2,20 +2,6 @@ const common = require("./common")
 
 const _unblockedURLs = new Set()
 
-class ContentBlocker {
-    _window
+exports.isBlocked = url => common.isWebURL(url) && !_unblockedURLs.has(url)
 
-    constructor(window) {
-        this._window = window
-    }
-
-    isBlocked(url) {
-        return common.isWebURL(url) && !_unblockedURLs.has(url)
-    }
-
-    unblock(url) {
-        _unblockedURLs.add(url)
-    }
-}
-
-exports.create = window => new ContentBlocker(window)
+exports.unblock = url => _unblockedURLs.add(url)

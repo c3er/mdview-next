@@ -17,7 +17,6 @@ class Window {
     static instances = {}
 
     _electronWindow
-    _contentBlocker
 
     filePath
     menu
@@ -62,7 +61,7 @@ class Window {
     }
 
     unblock(url) {
-        this._contentBlocker.unblock(url)
+        contentBlocking.unblock(url)
     }
 
     static open(filePath) {
@@ -101,13 +100,12 @@ class Window {
     }
 
     _setupContentBlocking(webRequest) {
-        this._contentBlocker = contentBlocking.create(this)
         let lastTime = Date.now()
         webRequest.onBeforeRequest((details, callback) => {
             const currentTime = Date.now()
 
             const url = details.url
-            const isBlocked = this._contentBlocker.isBlocked(url)
+            const isBlocked = contentBlocking.isBlocked(url)
             log.info(
                 `${isBlocked ? "Blocked" : "Loading"}: ${url} (${
                     currentTime - lastTime
