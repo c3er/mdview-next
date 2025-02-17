@@ -6,7 +6,7 @@ class IpcChannel {
     _targetCallbacks = []
     _sourceAssertionCallbacks = []
     _targetAssertionCallbacks = []
-    _invokeTargetCallback = null
+    _invokeAssertionCallback = null
 
     send(event, ...args) {
         this._targetCallbacks.forEach(callback => callback(event, ...args))
@@ -15,7 +15,14 @@ class IpcChannel {
     }
 
     invoke(event, ...args) {
-        return new Promise(resolve => resolve(this._invokeTargetCallback(event, ...args)))
+        return new Promise((resolve, reject) => {
+            const callback = this._invokeAssertionCallback
+            if (!callback) {
+                reject(new Error("Invoke assertion callback is not set"))
+                return
+            }
+            resolve(callback(event, ...args))
+        })
     }
 
     addTarget(callback) {
@@ -28,6 +35,10 @@ class IpcChannel {
 
     addTargetAssertion(callback) {
         this._targetAssertionCallbacks.push(callback)
+    }
+
+    setInvokeAssertion(callback) {
+        this._invokeAssertionCallback = callback
     }
 }
 
@@ -52,11 +63,22 @@ class IpcChannelCollection {
         this._addCallback(message, callback, channel => channel.addTargetAssertion(callback))
     }
 
+    setInvokeAssertion(message, callback) {
+        this._addCallback(message, callback, channel => channel.setInvokeAssertion(callback))
+    }
+
     send(message, event, ...args) {
         if (!Object.hasOwn(this._data, message)) {
             assert.fail(`Message "${message}" is not registered in channel "${this.name}"`)
         }
         this._data[message].send(event, ...args)
+    }
+
+    async invoke(message, event, ...args) {
+        if (!Object.hasOwn(this._data, message)) {
+            assert.fail(`Message "${message}" is not registered in channel "${this.name}"`)
+        }
+        return await this._data[message].invoke(event, ...args)
     }
 
     clear() {
@@ -140,6 +162,7 @@ class Electron {
 }
 
 class HtmlElement {
+    attributes = []
     innerHTML = ""
     style = {
         paddingTop: "",
@@ -180,6 +203,14 @@ class Document {
     }
 }
 
+class Window {
+    getComputedStyle() {
+        return {
+            height: 0,
+        }
+    }
+}
+
 const _ipcToMainChannels = new IpcChannelCollection("to-main-channel")
 const _ipcToRendererChannels = new IpcChannelCollection("to-renderer-channel")
 
@@ -192,6 +223,8 @@ exports.cleanup = () => {
 }
 
 exports.createElectron = () => new Electron()
+
+exports.electronIpcEvent = _electronIpcEvent
 
 exports.ipc = {
     register: {
@@ -209,6 +242,9 @@ exports.ipc = {
         },
         webContentsSend(message, callback) {
             _ipcToRendererChannels.addSourceAssertion(message, callback ?? (() => {}))
+        },
+        rendererInvoke(message, callback) {
+            _ipcToMainChannels.setInvokeAssertion(message, callback ?? (() => {}))
         },
     },
     sendToMain(message, event, ...args) {
@@ -373,3 +409,5 @@ exports.elements = {
 exports.createDocument = htmlElement => new Document(htmlElement)
 
 exports.createHtmlElement = () => new HtmlElement()
+
+exports.createWindow = () => new Window()
