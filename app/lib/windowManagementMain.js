@@ -2,7 +2,6 @@ const path = require("path")
 
 const contentBlocking = require("./contentBlockingMain")
 const ipc = require("./ipcMainIntern")
-const log = require("./logMain")
 const menu = require("./menuMain")
 
 let electron
@@ -23,7 +22,7 @@ class Window {
 
     constructor(filePath) {
         this._electronWindow = this._createElectronWindow()
-        this._setupContentBlocking(this._electronWindow.webContents.session.webRequest)
+        contentBlocking.setup(this._electronWindow)
         this.filePath = filePath
         this.menu = menu.create(this)
         this._storeInstance()
@@ -97,32 +96,6 @@ class Window {
 
     _updateMenu() {
         electron.Menu.setApplicationMenu(this.menu)
-    }
-
-    _setupContentBlocking(webRequest) {
-        let lastTime = Date.now()
-        webRequest.onBeforeRequest((details, callback) => {
-            const currentTime = Date.now()
-
-            const url = details.url
-            const isBlocked = contentBlocking.isBlocked(url)
-            log.info(
-                `${isBlocked ? "Blocked" : "Loading"}: ${url} (${
-                    currentTime - lastTime
-                } ms since last load)`,
-            )
-            callback({ cancel: isBlocked })
-            if (isBlocked) {
-                ipc.send(this._electronWindow, ipc.messages.intern.contentBlocked, url)
-            }
-
-            lastTime = currentTime
-        })
-        webRequest.onBeforeRedirect(details => {
-            const url = details.redirectURL
-            log.info(`Redirecting: ${url}`)
-            this.unblock(url)
-        })
     }
 
     _createElectronWindow() {
