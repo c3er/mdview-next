@@ -2,6 +2,39 @@ const assert = require("assert")
 
 const common = require("../app/lib/common")
 
+class WebRequestChannel {
+    _callback = () => {}
+
+    send(details, callback) {
+        this._callback(details, callback)
+    }
+
+    register(callback) {
+        this._callback = callback
+    }
+}
+
+class WebRequest {
+    _onBeforeRequestChannel = new WebRequestChannel()
+    _onBeforeRedirectChannel = new WebRequestChannel()
+
+    sendBeforeRequest(details, callback) {
+        this._onBeforeRequestChannel.send(details, callback)
+    }
+
+    sendBeforeRedirect(details) {
+        this._onBeforeRedirectChannel.send(details)
+    }
+
+    registerOnBeforeRequest(callback) {
+        this._onBeforeRequestChannel.register(callback)
+    }
+
+    registerOnBeforeRedirect(callback) {
+        this._onBeforeRedirectChannel.register(callback)
+    }
+}
+
 class IpcChannel {
     _targetCallbacks = []
     _sourceAssertionCallbacks = []
@@ -97,8 +130,14 @@ class IpcChannelCollection {
 }
 
 class BrowserWindow {
+    _webRequest
+
     closeIsCalled = false
     focusIsCalled = false
+
+    constructor(webRequest) {
+        this._webRequest = webRequest
+    }
 
     webContents = {
         send(message, ...args) {
@@ -106,8 +145,8 @@ class BrowserWindow {
         },
         session: {
             webRequest: {
-                onBeforeRequest() {},
-                onBeforeRedirect() {},
+                onBeforeRequest: this._webRequest?.registerOnBeforeRequest ?? (() => {}),
+                onBeforeRedirect: this._webRequest?.registerOnBeforeRedirect ?? (() => {}),
             },
         },
     }
@@ -222,6 +261,10 @@ exports.cleanup = () => {
     _ipcToRendererChannels.clear()
 }
 
+exports.createWebRequest = () => new WebRequest()
+
+exports.createBrowserWindow = webRequest => new BrowserWindow(webRequest)
+
 exports.createElectron = () => new Electron()
 
 exports.electronIpcEvent = _electronIpcEvent
@@ -248,9 +291,11 @@ exports.ipc = {
         },
     },
     sendToMain(message, event, ...args) {
+        _ipcToMainChannels.addTargetAssertion(message, () => {})
         _ipcToMainChannels.send(message, event, ...args)
     },
     sendToRenderer(message, event, ...args) {
+        _ipcToRendererChannels.addSourceAssertion(message, () => {})
         _ipcToRendererChannels.send(message, event, ...args)
     },
 }

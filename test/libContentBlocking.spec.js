@@ -8,8 +8,13 @@ describe("Content blocking", () => {
 
     describe("Main part", () => {
         const contentBlocking = require("../app/lib/contentBlockingMain")
+        const ipc = require("../app/lib/ipcMainIntern")
 
-        beforeEach(() => contentBlocking.reset())
+        beforeEach(() => {
+            mocking.cleanup()
+            contentBlocking.reset()
+            ipc.init(mocking.createElectron())
+        })
 
         it("blocks a URL", () => {
             assert(contentBlocking.isBlocked(expectedUrl))
@@ -18,6 +23,50 @@ describe("Content blocking", () => {
         it("unblocks a URL", () => {
             contentBlocking.unblock(expectedUrl)
             assert(!contentBlocking.isBlocked(expectedUrl))
+        })
+
+        describe("Setup", () => {
+            describe("Request handler", () => {
+                let webRequestMock
+                let browserWindowMock
+
+                function buildRequestCallback(isBlocked) {
+                    return options => assert.strictEqual(options.cancel, isBlocked)
+                }
+
+                beforeEach(() => {
+                    webRequestMock = mocking.createWebRequest()
+                    webRequestMock.registerOnBeforeRequest(details =>
+                        assert.strictEqual(details.url, expectedUrl),
+                    )
+                    browserWindowMock = mocking.createBrowserWindow(webRequestMock)
+                })
+
+                it("blocks a URL", () => {
+                    mocking.ipc.register.webContentsSend(ipc.messages.contentBlocked)
+                    contentBlocking.setup(browserWindowMock)
+                    webRequestMock.sendBeforeRequest(
+                        {
+                            url: expectedUrl,
+                        },
+                        buildRequestCallback(true),
+                    )
+                })
+
+                it("does not block an unblocked URL", () => {
+                    mocking.ipc.sendToMain(
+                        ipc.messages.unblockURL,
+                        mocking.electronIpcEvent,
+                        expectedUrl,
+                    )
+                    webRequestMock.sendBeforeRequest(
+                        {
+                            url: expectedUrl,
+                        },
+                        buildRequestCallback(false),
+                    )
+                })
+            })
         })
     })
 
