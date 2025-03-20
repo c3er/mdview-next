@@ -1,5 +1,6 @@
 const assert = require("assert")
 
+const contentBlocking = require("../app/lib/contentBlockingMain")
 const ipc = require("../app/lib/ipcMainIntern")
 const menu = require("../app/lib/menuMain")
 const windowManagement = require("../app/lib/windowManagementMain")
@@ -65,5 +66,28 @@ describe("Window management", () => {
     it("throws an error at attempt to close a non existing window", () => {
         const file = "non-existing-testfile.md"
         assert.throws(() => windowManagement.close(file), new RegExp(file))
+    })
+
+    it("unblocks a URL", () => {
+        const expectedUrl = "http://example.com"
+        const file1 = "non-existing-testfile1.md"
+        const file2 = "non-existing-testfile2.md"
+
+        let messageSentCount = 0
+        mocking.ipc.register.webContentsSend(ipc.messages.intern.contentUnblocked, (_, url) => {
+            assert.strictEqual(url, expectedUrl)
+            messageSentCount++
+        })
+
+        windowManagement.open(file1)
+        windowManagement.open(file2)
+        const windows = windowManagement.windows()
+        const window1 = windows[file1]
+
+        assert(contentBlocking.isBlocked(expectedUrl))
+        window1.unblock(expectedUrl)
+
+        assert(!contentBlocking.isBlocked(expectedUrl))
+        assert.strictEqual(messageSentCount, 1)
     })
 })

@@ -61,6 +61,9 @@ class Window {
 
     unblock(url) {
         contentBlocking.unblock(url)
+        for (const window of Object.values(Window.instances).filter(window => window !== this)) {
+            ipc.send(window._electronWindow, ipc.messages.intern.contentUnblocked, url)
+        }
     }
 
     static open(filePath) {

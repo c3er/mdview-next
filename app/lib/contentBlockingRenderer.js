@@ -48,9 +48,11 @@ function hasBlockedElements() {
     return !common.isEmptyObject(_blockedElements)
 }
 
-async function unblockURL(url) {
+async function notifyUrlUnblocked(url) {
     await ipc.invoke(ipc.messages.intern.unblockURL, url)
+}
 
+function unblockURL(url) {
     const elements = _blockedElements[url] ?? []
     for (const element of elements) {
         element.removeAttribute("style")
@@ -78,7 +80,8 @@ async function unblockURL(url) {
 
 async function unblockAll() {
     for (const url in _blockedElements) {
-        await unblockURL(url)
+        await notifyUrlUnblocked(url)
+        unblockURL(url)
     }
 }
 
@@ -99,7 +102,10 @@ exports.init = (document, window, shallForceInitialization) => {
     ipc.listen(ipc.messages.intern.contentBlocked, url => {
         const elements = (_blockedElements[url] = searchElementsWithAttributeValue(url))
         for (const element of elements) {
-            element.onclick = async () => await unblockURL(url)
+            element.onclick = async () => {
+                await notifyUrlUnblocked(url)
+                unblockURL(url)
+            }
         }
 
         menu.setEnabled(menu.id.unblockAll, true)
@@ -108,6 +114,7 @@ exports.init = (document, window, shallForceInitialization) => {
         _document.getElementById(_elementIDs.closeButton).onclick = () =>
             changeInfoElementVisiblity(false)
     })
+    ipc.listen(ipc.messages.intern.contentUnblocked, unblockURL)
 
     _isInitialized = true
 }
