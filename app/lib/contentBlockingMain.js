@@ -21,7 +21,7 @@ exports.setup = electronWindow => {
         const url = details.url
         const urlIsBlocked = isBlocked(url)
         log.info(
-            `${isBlocked ? "Blocked" : "Loading"}: ${url} (${currentTime - lastTime} ms since last load)`,
+            `${urlIsBlocked ? "Blocked" : "Loading"}: ${url} (${currentTime - lastTime} ms since last load)`,
         )
         callback({ cancel: urlIsBlocked })
         if (urlIsBlocked) {
