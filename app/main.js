@@ -44,7 +44,7 @@ function initElectron() {
     })
 
     ipc.intern.handle(ipc.messages.intern.fetchDocumentPath, id =>
-        windowManagement.pathByWindowId(id),
+        windowManagement.pathByWebContentsId(id),
     )
 }
 

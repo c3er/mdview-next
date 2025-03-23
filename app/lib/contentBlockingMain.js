@@ -12,8 +12,8 @@ function isBlocked(url) {
     return common.isWebURL(url) && !_unblockedURLs.has(url)
 }
 
-exports.setup = electronWindow => {
-    const webRequest = electronWindow.webContents.session.webRequest
+exports.setup = browserWindow => {
+    const webRequest = browserWindow.webContents.session.webRequest
     let lastTime = Date.now()
     webRequest.onBeforeRequest((details, callback) => {
         const currentTime = Date.now()
@@ -25,7 +25,7 @@ exports.setup = electronWindow => {
         )
         callback({ cancel: urlIsBlocked })
         if (urlIsBlocked) {
-            ipc.send(electronWindow, ipc.messages.intern.contentBlocked, url)
+            ipc.send(browserWindow, ipc.messages.intern.contentBlocked, url)
         }
 
         lastTime = currentTime

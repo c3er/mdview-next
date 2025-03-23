@@ -15,14 +15,14 @@ let _lastOpenedFilePath
 class Window {
     static instances = {}
 
-    _electronWindow
+    _browserWindow
 
     filePath
     menu
 
     constructor(filePath) {
-        this._electronWindow = this._createElectronWindow()
-        contentBlocking.setup(this._electronWindow)
+        this._browserWindow = this._createBrowserWindow()
+        contentBlocking.setup(this._browserWindow)
         this.filePath = filePath
         this.menu = menu.create(this)
         this._storeInstance()
@@ -30,29 +30,29 @@ class Window {
 
     // For testing
     get focusIsCalled() {
-        return this._electronWindow.focusIsCalled
+        return this._browserWindow.focusIsCalled
     }
 
     // For testing
     get closeIsCalled() {
-        return this._electronWindow.closeIsCalled
+        return this._browserWindow.closeIsCalled
     }
 
     focus() {
-        this._electronWindow.focus()
+        this._browserWindow.focus()
     }
 
     close() {
-        this._electronWindow.close()
+        this._browserWindow.close()
         this._deleteInstance()
     }
 
     send(messageId, ...args) {
-        ipc.send(this._electronWindow, messageId, ...args)
+        ipc.send(this._browserWindow, messageId, ...args)
     }
 
     openDevTools() {
-        this._electronWindow.webContents.openDevTools()
+        this._browserWindow.webContents.openDevTools()
     }
 
     setMenuItemEnabled(itemId, isEnabled) {
@@ -62,7 +62,7 @@ class Window {
     unblock(url) {
         contentBlocking.unblock(url)
         for (const window of Object.values(Window.instances).filter(window => window !== this)) {
-            ipc.send(window._electronWindow, ipc.messages.intern.contentUnblocked, url)
+            ipc.send(window._browserWindow, ipc.messages.intern.contentUnblocked, url)
         }
     }
 
@@ -78,9 +78,9 @@ class Window {
         return instance
     }
 
-    static byElectronId(id) {
+    static byWebContentsId(id) {
         return Object.values(Window.instances).find(
-            window => window._electronWindow.webContents.id === id,
+            window => window._browserWindow.webContents.id === id,
         )
     }
 
@@ -101,7 +101,7 @@ class Window {
         electron.Menu.setApplicationMenu(this.menu)
     }
 
-    _createElectronWindow() {
+    _createBrowserWindow() {
         const window = new electron.BrowserWindow({
             width: WINDOW_WIDTH_DEFAULT,
             height: WINDOW_HEIGHT_DEFAULT,
@@ -124,10 +124,10 @@ exports.init = (defaultFile, electronMock) => {
 
     ipc.listen(ipc.messages.intern.openFile, (_, filePath) => Window.open(filePath))
     ipc.listen(ipc.messages.intern.setMenuItemEnabled, (senderId, menuItemId, isEnabled) =>
-        Window.byElectronId(senderId).setMenuItemEnabled(menuItemId, isEnabled),
+        Window.byWebContentsId(senderId).setMenuItemEnabled(menuItemId, isEnabled),
     )
     ipc.handle(ipc.messages.intern.unblockURL, (senderId, url) =>
-        Window.byElectronId(senderId).unblock(url),
+        Window.byWebContentsId(senderId).unblock(url),
     )
 }
 
@@ -139,8 +139,8 @@ exports.open = filePath => {
 
 exports.close = filePath => Window.byFilePath(filePath).close()
 
-exports.pathByWindowId = id => {
-    const window = Window.byElectronId(id)
+exports.pathByWebContentsId = id => {
+    const window = Window.byWebContentsId(id)
     if (!window) {
         throw new Error(`No window found for ID ${id}`)
     }

@@ -29,5 +29,4 @@ exports.listen = listen
 exports.handle = (message, callback) =>
     electron.ipcMain.handle(message, (event, ...args) => callback(event.sender.id, ...args))
 
-exports.send = (electronWindow, message, ...args) =>
-    electronWindow.webContents.send(message, ...args)
+exports.send = (browserWindow, message, ...args) => browserWindow.webContents.send(message, ...args)
