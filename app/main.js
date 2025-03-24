@@ -46,6 +46,7 @@ function initElectron() {
     ipc.intern.handle(ipc.messages.intern.fetchDocumentPath, id =>
         windowManagement.pathByWebContentsId(id),
     )
+    ipc.intern.handle(ipc.messages.intern.fetchApplicationVersion, () => electron.app.getVersion())
 }
 
 function initProcessServer() {

@@ -8,6 +8,7 @@ const menuHandling = require("./lib/menuHandlingRenderer")
 const navigation = require("./lib/navigationRenderer")
 const renderer = require("./lib/commonRenderer")
 const statusBar = require("./lib/statusBarRenderer")
+const title = require("./lib/titleRenderer")
 
 const UPDATE_INTERVAL_MS = 1000
 
@@ -46,7 +47,10 @@ async function domContentLoadedHandler() {
 
     const documentPath = await fetchDocumentPath()
     log.debug(`Got path: ${documentPath}`)
+
+    await title.init(document, documentPath)
     navigation.init(document, documentPath)
+    navigation.register(location => title.updatePrefix(location.toString()))
 
     await documentRendering.render(documentPath)
     log.info("Rendered document")

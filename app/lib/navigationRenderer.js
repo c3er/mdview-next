@@ -17,6 +17,7 @@ const _locations = {
     forward: [],
     current: null,
 }
+const _callbacks = []
 
 class Location {
     documentPath
@@ -27,6 +28,10 @@ class Location {
         this.documentPath = documentPath
         this.internalTarget = internalTarget
         this.scrollPosition = scrollPosition
+    }
+
+    toString() {
+        return `${this.documentPath}${this.internalTarget}`
     }
 }
 
@@ -52,6 +57,7 @@ function reset() {
     clearBack()
     clearForward()
     _locations.current = null
+    _callbacks.length = 0
 }
 
 function canGoBack() {
@@ -88,10 +94,11 @@ async function checkFile(filePath) {
 }
 
 function navigate(location) {
-    log.debug(
-        `Navigating to ${location.documentPath}${location.internalTarget} (position ${location.scrollPosition})`,
-    )
+    log.debug(`Navigating to ${location} (position ${location.scrollPosition})`)
     renderer.scrollTo(location.scrollPosition)
+    for (const callback of _callbacks) {
+        callback(location)
+    }
 }
 
 function goStep(canGoCallback, pushDirection, popDirection) {
@@ -167,6 +174,8 @@ exports.registerLink = (linkElement, target, documentDirectory) => {
 exports.back = () => goStep(canGoBack, _locations.forward, _locations.back)
 
 exports.forward = () => goStep(canGoForward, _locations.back, _locations.forward)
+
+exports.register = callback => _callbacks.push(callback)
 
 // For testing
 

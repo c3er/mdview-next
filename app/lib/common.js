@@ -1,3 +1,5 @@
+exports.APPLICATION_NAME = "Markdown Viewer"
+
 exports.FILE_EXTENSIONS = ["md", "markdown"]
 
 exports.isWebURL = url =>

@@ -42,6 +42,12 @@ describe("Navigation", () => {
         const TARGET2 = "target2"
         const TARGET3 = "target3"
 
+        let currentLocation
+
+        function callback(location) {
+            currentLocation = location
+        }
+
         function assertHistoryJumping(canGoBack, canGoForward) {
             assert.strictEqual(navigation.canGoBack(), canGoBack)
             assert.strictEqual(navigation.canGoForward(), canGoForward)
@@ -50,6 +56,7 @@ describe("Navigation", () => {
         function go(target) {
             navigation.go(target)
             assert.strictEqual(navigation.currentTarget(), target)
+            assert.strictEqual(currentLocation.internalTarget, target)
         }
 
         function back(expectedTarget) {
@@ -68,6 +75,7 @@ describe("Navigation", () => {
         })
 
         it("goes back and forth between files", () => {
+            navigation.register(callback)
             assertHistoryJumping(false, false)
 
             go(TARGET1)
