@@ -42,11 +42,11 @@ async function domContentLoadedHandler() {
     renderer.init(document)
     statusBar.init(document)
     documentRendering.init(document)
-    navigation.init(document)
     contentBlocking.init(document, window)
 
     const documentPath = await fetchDocumentPath()
     log.debug(`Got path: ${documentPath}`)
+    navigation.init(document, documentPath)
 
     await documentRendering.render(documentPath)
     log.info("Rendered document")

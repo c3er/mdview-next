@@ -4,6 +4,7 @@ const common = require("./common")
 const error = require("./errorRenderer")
 const file = require("./file")
 const ipc = require("./ipcRenderer")
+const log = require("./logRenderer")
 const menu = require("./menuRenderer")
 const renderer = require("./commonRenderer")
 
@@ -18,11 +19,14 @@ const _locations = {
 }
 
 class Location {
-    scrollPosition
+    documentPath
     internalTarget
+    scrollPosition
 
-    constructor(internalTarget) {
+    constructor(documentPath, internalTarget = "", scrollPosition = 0) {
+        this.documentPath = documentPath
         this.internalTarget = internalTarget
+        this.scrollPosition = scrollPosition
     }
 }
 
@@ -83,6 +87,13 @@ async function checkFile(filePath) {
     return true
 }
 
+function navigate(location) {
+    log.debug(
+        `Navigating to ${location.documentPath}${location.internalTarget} (position ${location.scrollPosition})`,
+    )
+    renderer.scrollTo(location.scrollPosition)
+}
+
 function goStep(canGoCallback, pushDirection, popDirection) {
     if (!canGoCallback()) {
         return
@@ -92,12 +103,9 @@ function goStep(canGoCallback, pushDirection, popDirection) {
     oldLocation.scrollPosition = renderer.currentScrollPosition()
     pushDirection.push(oldLocation)
 
-    const destination = (_locations.current = popDirection.pop())
-
     allowBack(canGoBack())
     allowForward(canGoForward())
-
-    renderer.scrollTo(destination.scrollPosition)
+    navigate((_locations.current = popDirection.pop()))
 }
 
 function go(target) {
@@ -112,10 +120,14 @@ function go(target) {
     _locations.back.push(oldLocation)
 
     clearForward()
-    _locations.current = new Location(target)
     allowBack(canGoBack())
-
-    renderer.scrollTo(renderer.elementYPosition(targetElement))
+    navigate(
+        (_locations.current = new Location(
+            oldLocation.documentPath,
+            target,
+            renderer.elementYPosition(targetElement),
+        )),
+    )
 }
 
 async function dispatchLink(target, documentDirectory) {
@@ -135,14 +147,14 @@ async function dispatchLink(target, documentDirectory) {
     }
 }
 
-exports.init = (document, electronMock) => {
+exports.init = (document, documentPath, electronMock) => {
     electron = electronMock ?? require("electron")
     _document = document
 
     reset()
     allowBack(false)
     allowForward(false)
-    _locations.current = new Location("")
+    _locations.current = new Location(documentPath)
 }
 
 exports.registerLink = (linkElement, target, documentDirectory) => {

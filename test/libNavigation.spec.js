@@ -1,6 +1,7 @@
 const assert = require("assert")
 const path = require("path")
 
+const lib = require("./testLib")
 const mocking = require("./mocking")
 
 const documentDirectory = path.join(__dirname, "documents")
@@ -16,6 +17,7 @@ describe("Navigation", () => {
 
     beforeEach(() => {
         mocking.cleanup()
+        lib.registerElectronLogIpc()
         mocking.ipc.register.mainOn(ipc.messages.intern.setMenuItemEnabled)
 
         htmlElement = mocking.createHtmlElement()
@@ -24,7 +26,7 @@ describe("Navigation", () => {
 
         ipc.init(electron)
         renderer.init(document)
-        navigation.init(document, electron)
+        navigation.init(document, mdFilePath, electron)
     })
 
     it("gets events", () => {
