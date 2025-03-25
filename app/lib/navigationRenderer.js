@@ -99,6 +99,7 @@ function navigate(location) {
     for (const callback of _callbacks) {
         callback(location)
     }
+    _locations.current = location
 }
 
 function goStep(canGoCallback, pushDirection, popDirection) {
@@ -112,7 +113,7 @@ function goStep(canGoCallback, pushDirection, popDirection) {
 
     allowBack(canGoBack())
     allowForward(canGoForward())
-    navigate((_locations.current = popDirection.pop()))
+    navigate(popDirection.pop())
 }
 
 function go(target) {
@@ -129,11 +130,7 @@ function go(target) {
     clearForward()
     allowBack(canGoBack())
     navigate(
-        (_locations.current = new Location(
-            oldLocation.documentPath,
-            target,
-            renderer.elementYPosition(targetElement),
-        )),
+        new Location(oldLocation.documentPath, target, renderer.elementYPosition(targetElement)),
     )
 }
 
