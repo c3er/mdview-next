@@ -79,11 +79,7 @@ describe("Content blocking", () => {
             mocking.ipc.register.rendererSend(ipc.messages.intern.setMenuItemEnabled)
 
             ipc.init(mocking.createElectron())
-            contentBlocking.init(
-                mocking.createDocument(mocking.createHtmlElement()),
-                mocking.createWindow(),
-                true,
-            )
+            contentBlocking.init(mocking.createDocument(), mocking.createWindow(), true)
         })
 
         afterEach(() => {

@@ -66,6 +66,13 @@ async function cleanup() {
     await lib.removeData()
 }
 
+async function waitForWindowLoaded() {
+    await _page.locator("#loading-indicator #loaded").waitFor({
+        state: "attached",
+        timeout: 5000,
+    })
+}
+
 async function startApp() {
     _app = await electron.launch({
         args: [path.join(__dirname, ".."), "--test", "--log-dir", lib.LOG_DIR],
@@ -75,7 +82,7 @@ async function startApp() {
     _page = await _app.firstWindow()
     _page.on("pageerror", error => assert.fail(`Page error: ${error}`))
     _page.setDefaultTimeout(DEFAULT_TIMEOUT_MS)
-    await _page.waitForSelector("h1") // Wait until the window is actually loaded
+    await waitForWindowLoaded()
 }
 
 describe("Process handling", () => {

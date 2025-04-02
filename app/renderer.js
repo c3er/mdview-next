@@ -2,6 +2,7 @@ const fs = require("fs/promises")
 
 const contentBlocking = require("./lib/contentBlockingRenderer")
 const documentRendering = require("./lib/documentRenderingRenderer")
+const error = require("./lib/errorRenderer")
 const ipc = require("./lib/ipcRenderer")
 const log = require("./lib/logRenderer")
 const menuHandling = require("./lib/menuHandlingRenderer")
@@ -44,6 +45,7 @@ async function domContentLoadedHandler() {
     statusBar.init(document)
     documentRendering.init(document)
     contentBlocking.init(document, window)
+    error.init(document)
 
     const documentPath = await fetchDocumentPath()
     log.debug(`Got path: ${documentPath}`)
@@ -57,6 +59,9 @@ async function domContentLoadedHandler() {
 
     renderer.contentElement().focus()
     watchDocument(documentPath)
+
+    // Needed for testing
+    document.getElementById("loading-indicator").innerHTML = '<div id="loaded"></div>'
 }
 
 addEventListener("DOMContentLoaded", domContentLoadedHandler)

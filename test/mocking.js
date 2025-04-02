@@ -220,6 +220,12 @@ class HtmlElement {
             top: 0,
         }
     }
+
+    addEventListener() {}
+
+    showModal() {}
+
+    close() {}
 }
 
 class Document {
@@ -451,7 +457,7 @@ exports.elements = {
     },
 }
 
-exports.createDocument = htmlElement => new Document(htmlElement)
+exports.createDocument = htmlElement => new Document(htmlElement ?? new HtmlElement())
 
 exports.createHtmlElement = () => new HtmlElement()
 
