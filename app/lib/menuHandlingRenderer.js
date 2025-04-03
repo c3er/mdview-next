@@ -18,8 +18,8 @@ exports.init = () => {
     handle(shared.id.find, () => log.debug('Menu entry "Find" called'))
     handle(shared.id.findNext, () => log.debug('Menu entry "Find Next" called'))
     handle(shared.id.findPrevious, () => log.debug('Menu entry "Find Previous" called'))
-    handle(shared.id.navigateBack, () => navigation.back())
-    handle(shared.id.navigateForward, () => navigation.forward())
+    handle(shared.id.navigateBack, navigation.back)
+    handle(shared.id.navigateForward, navigation.forward)
     handle(shared.id.print, () => log.debug('Menu entry "Print" called'))
     handle(shared.id.rawText, () => log.debug('Menu entry "Show Raw Text" called'))
     handle(shared.id.settings, () => log.debug('Menu entry "Settings" called'))
@@ -32,7 +32,7 @@ exports.init = () => {
     handle(shared.id.tocShowForThisDocument, () =>
         log.debug('Menu entry "TOC -> Show For This Document" called'),
     )
-    handle(shared.id.unblockAll, async () => await contentBlocking.unblockAll())
+    handle(shared.id.unblockAll, contentBlocking.unblockAll)
     handle(shared.id.zoomIn, () => log.debug('Menu entry "Zoom In" called'))
     handle(shared.id.zoomOut, () => log.debug('Menu entry "Zoom Out" called'))
     handle(shared.id.zoomReset, () => log.debug('Menu entry "Reset Zoom" called'))
