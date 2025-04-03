@@ -1,5 +1,6 @@
 const fs = require("fs/promises")
 
+const about = require("./lib/aboutRenderer")
 const contentBlocking = require("./lib/contentBlockingRenderer")
 const documentRendering = require("./lib/documentRenderingRenderer")
 const error = require("./lib/errorRenderer")
@@ -46,6 +47,7 @@ async function domContentLoadedHandler() {
     documentRendering.init(document)
     contentBlocking.init(document, window)
     error.init(document)
+    about.init(document)
 
     const documentPath = await fetchDocumentPath()
     log.debug(`Got path: ${documentPath}`)

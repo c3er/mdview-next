@@ -1,3 +1,4 @@
+const about = require("./aboutRenderer")
 const contentBlocking = require("./contentBlockingRenderer")
 const error = require("./errorRenderer")
 const ipc = require("./ipcRenderer")
@@ -11,7 +12,7 @@ function handle(id, callback) {
 }
 
 exports.init = () => {
-    handle(shared.id.about, () => log.debug('Menu entry "About" called'))
+    handle(shared.id.about, about.open)
     handle(shared.id.clearFileHistory, () => log.debug('Menu entry "Clear File History" called'))
     handle(shared.id.encodingChange, () => log.debug('Menu entry "Change Encoding" called'))
     handle(shared.id.errorDialog, () => error.show("An error"))

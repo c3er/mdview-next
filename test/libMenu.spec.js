@@ -1,6 +1,7 @@
 const lib = require("./testLib")
 const mocking = require("./mocking")
 
+const about = require("../app/lib/aboutRenderer")
 const error = require("../app/lib/errorRenderer")
 
 describe("Menu module", () => {
@@ -13,10 +14,13 @@ describe("Menu module", () => {
         beforeEach(() => {
             mocking.cleanup()
             lib.registerElectronLogIpc()
+            lib.registerMenuItemEnabledMessage()
             ipc.init(mocking.createElectron())
             menuHandling.init()
 
-            error.init(mocking.createDocument())
+            const document = mocking.createDocument()
+            about.init(document, mocking.createElectron())
+            error.init(document)
         })
 
         describe("Handlers", () => {

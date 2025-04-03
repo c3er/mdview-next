@@ -223,9 +223,13 @@ class HtmlElement {
 
     addEventListener() {}
 
+    setAttribute() {}
+
     showModal() {}
 
     close() {}
+
+    focus() {}
 }
 
 class Document {
@@ -236,6 +240,10 @@ class Document {
     }
 
     getElementsByTagName() {
+        return [this.htmlElement]
+    }
+
+    getElementsByClassName() {
         return [this.htmlElement]
     }
 
