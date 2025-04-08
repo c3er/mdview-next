@@ -15,6 +15,9 @@
   },
   "author": "Christian Dreier",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/c3er/mdview/issues"
+  },
   "main": "app/main.js",
   "scripts": {
     "start": "electron . --log-dir logs",
