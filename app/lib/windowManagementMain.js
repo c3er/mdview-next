@@ -126,6 +126,10 @@ exports.init = (defaultFile, electronMock) => {
     ipc.listen(ipc.messages.intern.setMenuItemEnabled, (senderId, menuItemId, isEnabled) =>
         Window.byWebContentsId(senderId).setMenuItemEnabled(menuItemId, isEnabled),
     )
+    ipc.listen(ipc.messages.intern.closeWindow, senderId => {
+        Window.byWebContentsId(senderId).close()
+    })
+
     ipc.handle(ipc.messages.intern.unblockURL, (senderId, url) =>
         Window.byWebContentsId(senderId).unblock(url),
     )

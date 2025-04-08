@@ -3,6 +3,7 @@ exports.extern = {
 }
 
 exports.intern = {
+    closeWindow: "close-window",
     contentBlocked: "content-blocked",
     contentUnblocked: "content-unblocked",
     setMenuItemEnabled: "set-menu-item-enabled",

@@ -2,6 +2,7 @@ const fs = require("fs/promises")
 
 const about = require("./lib/aboutRenderer")
 const contentBlocking = require("./lib/contentBlockingRenderer")
+const dialog = require("./lib/dialogRenderer")
 const documentRendering = require("./lib/documentRenderingRenderer")
 const error = require("./lib/errorRenderer")
 const ipc = require("./lib/ipcRenderer")
@@ -67,3 +68,22 @@ async function domContentLoadedHandler() {
 }
 
 addEventListener("DOMContentLoaded", domContentLoadedHandler)
+
+onkeydown = event => {
+    switch (event.key) {
+        case "Escape":
+            event.preventDefault()
+            if (dialog.isOpen()) {
+                dialog.close()
+            } else {
+                ipc.send(ipc.messages.intern.closeWindow)
+            }
+            return
+        case "Backspace":
+            if (!dialog.isOpen()) {
+                event.preventDefault()
+                navigation.back()
+            }
+            return
+    }
+}
