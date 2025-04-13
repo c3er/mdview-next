@@ -7,6 +7,7 @@ const common = require("./common.js")
 const fileLib = require("./file.js")
 const log = require("./logRenderer.js")
 const navigation = require("./navigationRenderer.js")
+const search = require("./searchRenderer.js")
 const statusBar = require("./statusBarRenderer.js")
 
 let _markdown
@@ -186,4 +187,7 @@ exports.render = async documentPath => {
             source.src = fileLib.transformRelativePath(documentDirectory, url)
         }
     })
+
+    search.highlightTerm()
+    search.scrollToResult()
 }

@@ -3,6 +3,7 @@ const mocking = require("./mocking")
 
 const about = require("../app/lib/aboutRenderer")
 const error = require("../app/lib/errorRenderer")
+const search = require("../app/lib/searchRenderer")
 
 describe("Menu module", () => {
     describe("Handlers", () => {
@@ -21,6 +22,7 @@ describe("Menu module", () => {
             const document = mocking.createDocument()
             about.init(document, mocking.createElectron())
             error.init(document)
+            search.init(document, () => {})
         })
 
         describe("Handlers", () => {

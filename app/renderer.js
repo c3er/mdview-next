@@ -10,6 +10,7 @@ const log = require("./lib/logRenderer")
 const menuHandling = require("./lib/menuHandlingRenderer")
 const navigation = require("./lib/navigationRenderer")
 const renderer = require("./lib/commonRenderer")
+const search = require("./lib/searchRenderer")
 const statusBar = require("./lib/statusBarRenderer")
 const title = require("./lib/titleRenderer")
 
@@ -55,6 +56,7 @@ async function domContentLoadedHandler() {
 
     await title.init(document, documentPath)
     navigation.init(document, documentPath)
+    search.init(document, async () => await documentRendering.render(documentPath))
     navigation.register(location => title.updatePrefix(location.toString()))
 
     await documentRendering.render(documentPath)

@@ -203,9 +203,11 @@ class Electron {
 class HtmlElement {
     attributes = []
     innerHTML = ""
+    innerText = ""
     style = {
         paddingTop: "",
     }
+    value = ""
 
     get children() {
         return [this]
@@ -225,11 +227,17 @@ class HtmlElement {
 
     setAttribute() {}
 
+    setSelectionRange() {}
+
     showModal() {}
 
     close() {}
 
     focus() {}
+}
+
+class Event {
+    preventDefault() {}
 }
 
 class Document {
@@ -468,5 +476,7 @@ exports.elements = {
 exports.createDocument = htmlElement => new Document(htmlElement ?? new HtmlElement())
 
 exports.createHtmlElement = () => new HtmlElement()
+
+exports.createEvent = () => new Event()
 
 exports.createWindow = () => new Window()
