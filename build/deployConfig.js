@@ -1,11 +1,15 @@
 const APPLICATION_NAME = "Markdown Viewer"
+const APPLICATION_SHORTNAME = "mdview"
 const WIN_ICON = "app/assets/icon/md.ico"
 const MAC_ICON = "app/assets/icon/md.icns"
+const RESPOURCE_FILES = ["README.md", "CONTRIBUTING.md", "CHANGELOG.md", "LICENSE", "doc/**"]
 
 module.exports = {
+    productName: APPLICATION_NAME,
+    executableName: APPLICATION_SHORTNAME,
+    artifactName: "${name}-${version}-${arch}.${ext}",
     afterPack: "build/afterPack.js",
     afterAllArtifactBuild: "build/afterAllArtifactBuild.js",
-    artifactName: "${name}-${version}-${arch}.${ext}",
     files: [
         "!**/node_modules/**/{test,__tests__,tests,powered-test,example,examples}",
         "!**/*/{.eslintrc.json,.eslintrc.js,.eslintignore,.nvmrc,tsconfig.json,.stylelintrc.json,.prettierignore,.prettierrc,.prettierrc.json,.babelrc,babel.config.js,bower.json,webpack.config.js,.browserslist,rollup.config.js,.editorconfig}",
@@ -20,7 +24,9 @@ module.exports = {
         "!.prettier*",
         "!tmp.md",
         "!*.log",
+        ...RESPOURCE_FILES.map(file => `!${file}`),
     ],
+    extraResources: RESPOURCE_FILES,
     msi: {
         createDesktopShortcut: false,
         oneClick: false,
@@ -51,8 +57,9 @@ module.exports = {
         icon: WIN_ICON,
         extraFiles: [
             {
-                from: "build/.datadir",
-                to: ".datadir",
+                from: "build/assets",
+                to: ".",
+                filter: ["**/*"],
             },
         ],
     },

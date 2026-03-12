@@ -21,9 +21,7 @@ async function calcChecksum(filePath, algorithm) {
             hash.update(buffer)
         } while (bytesRead > 0)
     } finally {
-        if (file !== undefined) {
-            await file.close()
-        }
+        await file?.close()
     }
     return hash.digest("hex")
 }
@@ -50,9 +48,7 @@ async function createChecksumFiles(artifactPaths) {
                 `${checksum}  ${path.basename(artifactPath)}\n`,
             )
             console.log(
-                `${artifactPath.padEnd(maxArtifactPathLength)} ${algorithm.padEnd(
-                    maxAlgorithmNameLength,
-                )} ${checksum}`,
+                `${artifactPath.padEnd(maxArtifactPathLength)} ${algorithm.padEnd(maxAlgorithmNameLength)} ${checksum}`,
             )
         }
         artifacts.push(artifact)
@@ -67,6 +63,7 @@ async function createScoopManifest(outDir, artifacts) {
 
     const zipArtifact = artifacts.find(artifact => artifact.path.toLowerCase().endsWith(".zip"))
     if (!zipArtifact) {
+        console.warn("Could not generate Scoop manifest: ZIP package not found.")
         return
     }
 
@@ -84,5 +81,7 @@ async function createScoopManifest(outDir, artifacts) {
 
 exports.default = async context => {
     const artifacts = await createChecksumFiles(context.artifactPaths)
-    await createScoopManifest(context.outDir, artifacts)
+    if (process.platform === "win32") {
+        await createScoopManifest(context.outDir, artifacts)
+    }
 }
