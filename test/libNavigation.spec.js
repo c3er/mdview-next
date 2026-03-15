@@ -5,7 +5,7 @@ const lib = require("./testLib")
 const mocking = require("./mocking")
 
 const documentDirectory = path.join(__dirname, "documents")
-const mdFilePath = path.join(documentDirectory, "testfile_utf8.md")
+const mdFilePath = lib.DEFAULT_DOCUMENT_PATH
 
 describe("Navigation", () => {
     const ipc = require("../app/lib/ipcRenderer")

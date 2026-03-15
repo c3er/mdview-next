@@ -15,6 +15,14 @@
 
 <p style="font-family:MyFont">This is some text using some special font.</p>
 
+## Special headers
+
+### Content
+
+### TOC
+
+### Content body
+
 ## Links
 
 [External link to Google](http://www.google.com)
@@ -23,7 +31,11 @@ Another link to Google: https://www.google.com/
 
 [Link to README.md](../../README.md)
 
-[Internal link](#sub-heading-1)
+[Internal link to a header](#sub-heading-1)
+
+[Internal link, utilizing anchor with ID](#test-id)
+
+[Internal link, utilizing anchor with name](#test-name)
 
 <a href="#some-javascript" id="internal-test-link">Another internal link</a>
 
@@ -60,6 +72,10 @@ Another link to Google: https://www.google.com/
 ![Image with hash sign in file name](images/image#.png)
 
 ![Image from the evil Internet](https://c3er.github.io/cat.jpg)
+
+![Evil image from the Internet](https://c3er.github.io/cat2.jpg)
+
+![Another evil image from the evil Internet](https://c3er.github.io/cat3.jpg)
 
 ## Multimedia
 
@@ -112,6 +128,12 @@ See https://github.com/cmrd-senya/markdown-it-html5-embed
 This is a paragraph.
 
 This is another paragraph.
+
+## Anchor targets
+
+<a id="test-id"></a>Paragraph on anchor "test-id"
+
+<a name="test-name"></a>Paragraph on anchor "test-name"
 
 ## Lists
 
@@ -251,17 +273,6 @@ Lorem ipsum dolor sit amet, consecteteur adipiscing elit. Barcu ve a a a id a a 
 </table>
 
 ## Additional rendering features (via plugins)
-
-### Mermaid
-
-```mermaid
-graph TD
-    A[Christmas] -->|Get money| B(Go shopping)
-    B --> C{Let me think}
-    C -->|One| D[Laptop]
-    C -->|Two| E[iPhone]
-    C -->|Three| F[Car]
-```
 
 ### LaTeX math
 
