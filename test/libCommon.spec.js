@@ -25,8 +25,15 @@ describe('Library "common"', () => {
     })
 
     describe("common.prepareUrl", () => {
-        it("replaces all backslashes", () => {
+        it("replaces all backslashes in basic paths", () => {
             assert.strictEqual(common.prepareUrl("path\\to\\file"), "path/to/file")
+        })
+
+        it("does not convert backslashes after hash sign #", () => {
+            assert.strictEqual(
+                common.prepareUrl("path\\to\\file#target\\1"),
+                "path/to/file#target\\1",
+            )
         })
 
         it("removes file protocol prefix", () => {
