@@ -117,7 +117,9 @@ function goStep(canGoCallback, pushDirection, popDirection) {
 }
 
 function go(target) {
-    const targetElement = _document.getElementById(target.replace("#", ""))
+    const targetElement =
+        _document.querySelector(target) ??
+        _document.querySelector(`[name=${target.replace("#", "")}]`)
     if (!targetElement) {
         error.show(`Link target not found: ${target}`)
         return
