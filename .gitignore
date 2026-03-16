@@ -1,4 +1,5 @@
 node_modules/
+.vscode/
 dist/
 
 .DS_Store
@@ -6,14 +7,11 @@ dist/
 package-lock.json
 *.log
 
-# Markdown Viewer specific
+!.vscode/launch.json
+
+# Markdown Viewer's settings
+.data/
 .storage/
-logs/
 
 # For private notes
-tmp.md
-
-# See https://stackoverflow.com/a/5534865 (.gitignore exclude folder but include specific subfolder)
-!.vscode/
-.vscode/*
-!.vscode/launch.json
+tmp*
