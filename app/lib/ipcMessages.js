@@ -6,10 +6,10 @@ exports.intern = {
     closeWindow: "close-window",
     contentBlocked: "content-blocked",
     contentUnblocked: "content-unblocked",
-    setMenuItemEnabled: "set-menu-item-enabled",
     fetchApplicationVersion: "fetch-application-version",
     fetchDocumentPath: "fetch-document-path",
     openFile: "open-file",
+    setMenuItemEnabled: "set-menu-item-enabled",
     unblockAll: "unblock-all",
     unblockURL: "unblock-url",
 }
