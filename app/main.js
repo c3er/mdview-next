@@ -1,5 +1,6 @@
 const childProcess = require("child_process")
 const fs = require("fs")
+const stream = require("stream")
 
 const electron = require("electron")
 
@@ -26,6 +27,23 @@ function spawnMainProcess(argv) {
     log.info("Spawned main process with PID", mainProcess.pid)
     mainProcess.unref()
     process.exit(0)
+}
+
+function initOutputRedirection() {
+    const stdoutStream = new stream.Writable({
+        write(chunk, _, callback) {
+            log.debug(chunk.toString().trim())
+            callback()
+        },
+    })
+    const stderrStream = new stream.Writable({
+        write(chunk, _, callback) {
+            log.error(chunk.toString().trim())
+            callback()
+        },
+    })
+    process.stdout.write = stdoutStream.write.bind(stdoutStream)
+    process.stderr.write = stderrStream.write.bind(stderrStream)
 }
 
 function initElectron() {
@@ -80,8 +98,10 @@ electron.app.whenReady().then(async () => {
         ),
     )
     _isMainProcess = cliArgs.isMainProcess
-
     const filePath = cliArgs.filePath
+
+    initOutputRedirection()
+    console.log("stdout/stderr redirected to logging")
 
     ipc.init()
     await log.init(cliArgs.logDir, _isMainProcess)
