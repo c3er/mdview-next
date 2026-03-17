@@ -37,7 +37,7 @@ childProcess.exec(command, err => {
 while (!fs.existsSync(currentLogFile));
 
 const intervalTime = 200
-const bufferSize = 1024
+const bufferSize = 100000
 const buffer = Buffer.alloc(bufferSize, 0, "utf8")
 const logFileDescriptor = fs.openSync(currentLogFile)
 let lastLine = ""
