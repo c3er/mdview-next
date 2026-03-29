@@ -36,12 +36,18 @@ class Subscription {
     }
 }
 
+function unsubscribe(id) {
+    log.debug(`Unsubscribe for window ${id}`)
+    delete _subscriptions[id]
+}
+
 async function subscribe(id, filePath) {
     log.debug(`Window ${id} subscribed for "${filePath}`)
     if (!_subscriptions[id]) {
         _subscriptions[id] = new Subscription()
     }
     await _subscriptions[id].add(filePath)
+    windowManagement.addEventHandler("close", unsubscribe)
 }
 
 function numberObjectPairs(obj) {

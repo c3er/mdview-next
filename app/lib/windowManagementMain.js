@@ -15,6 +15,10 @@ let _lastOpenedFilePath
 class Window {
     static instances = {}
 
+    static _eventHandlers = {
+        close: [],
+    }
+
     browserWindow
 
     filePath
@@ -26,6 +30,10 @@ class Window {
         this.filePath = filePath
         this.menu = menu.create(this)
         this._storeInstance()
+    }
+
+    get id() {
+        return this.browserWindow.webContents.id
     }
 
     // For testing
@@ -43,6 +51,7 @@ class Window {
     }
 
     close() {
+        this._fireEvent("close")
         this.browserWindow.close()
         this._deleteInstance()
     }
@@ -66,6 +75,11 @@ class Window {
         }
     }
 
+    addEventHandler(event, callback) {
+        this._checkEvent(event)
+        Window._eventHandlers[event].push(callback)
+    }
+
     static open(filePath) {
         ;(Window.instances[filePath] ?? new Window(filePath)).focus()
     }
@@ -83,9 +97,7 @@ class Window {
         if (idType !== "number") {
             throw new Error(`Window ID must be a number; was ${idType}`)
         }
-        return Object.values(Window.instances).find(
-            window => window.browserWindow.webContents.id === id,
-        )
+        return Object.values(Window.instances).find(window => window.id === id)
     }
 
     // For testing
@@ -119,6 +131,19 @@ class Window {
         window.on("focus", () => this._updateMenu())
         window.loadFile(path.join(__dirname, "..", "index.html"))
         return window
+    }
+
+    _fireEvent(event, ...args) {
+        this._checkEvent(event)
+        for (const handler of Window._eventHandlers[event]) {
+            handler(this.id, ...args)
+        }
+    }
+
+    _checkEvent(event) {
+        if (!Window._eventHandlers[event]) {
+            throw new Error(`Event "${event}" not supported.`)
+        }
     }
 }
 
@@ -156,6 +181,12 @@ exports.pathByWebContentsId = id => {
 }
 
 exports.byWebContentsId = Window.byWebContentsId
+
+exports.addEventHandler = (event, callback) => {
+    for (const window of Object.values(Window.instances)) {
+        window.addEventHandler(event, callback)
+    }
+}
 
 // For testing
 
