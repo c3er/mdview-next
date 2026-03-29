@@ -5,6 +5,7 @@ const stream = require("stream")
 const electron = require("electron")
 
 const cli = require("./lib/cliMain")
+const fileWatcher = require("./lib/fileWatcherMain")
 const ipc = require("./lib/ipcMain")
 const log = require("./lib/logMain")
 const menu = require("./lib/menuMain")
@@ -107,6 +108,7 @@ electron.app.whenReady().then(async () => {
     await log.init(cliArgs.logDir, _isMainProcess)
     menu.init()
     windowManagement.init(cli.defaults.filePath)
+    fileWatcher.init()
 
     if (cliArgs.isTest) {
         log.debug("Called in test mode...")

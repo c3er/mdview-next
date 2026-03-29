@@ -15,14 +15,14 @@ let _lastOpenedFilePath
 class Window {
     static instances = {}
 
-    _browserWindow
+    browserWindow
 
     filePath
     menu
 
     constructor(filePath) {
-        this._browserWindow = this._createBrowserWindow()
-        contentBlocking.setup(this._browserWindow)
+        this.browserWindow = this._createBrowserWindow()
+        contentBlocking.setup(this.browserWindow)
         this.filePath = filePath
         this.menu = menu.create(this)
         this._storeInstance()
@@ -30,29 +30,29 @@ class Window {
 
     // For testing
     get focusIsCalled() {
-        return this._browserWindow.focusIsCalled
+        return this.browserWindow.focusIsCalled
     }
 
     // For testing
     get closeIsCalled() {
-        return this._browserWindow.closeIsCalled
+        return this.browserWindow.closeIsCalled
     }
 
     focus() {
-        this._browserWindow.focus()
+        this.browserWindow.focus()
     }
 
     close() {
-        this._browserWindow.close()
+        this.browserWindow.close()
         this._deleteInstance()
     }
 
     send(messageId, ...args) {
-        ipc.send(this._browserWindow, messageId, ...args)
+        ipc.send(this.browserWindow, messageId, ...args)
     }
 
     openDevTools() {
-        this._browserWindow.webContents.openDevTools()
+        this.browserWindow.webContents.openDevTools()
     }
 
     setMenuItemEnabled(itemId, isEnabled) {
@@ -62,7 +62,7 @@ class Window {
     unblock(url) {
         contentBlocking.unblock(url)
         for (const window of Object.values(Window.instances).filter(window => window !== this)) {
-            ipc.send(window._browserWindow, ipc.messages.intern.contentUnblocked, url)
+            ipc.send(window.browserWindow, ipc.messages.intern.contentUnblocked, url)
         }
     }
 
@@ -84,7 +84,7 @@ class Window {
             throw new Error(`Window ID must be a number; was ${idType}`)
         }
         return Object.values(Window.instances).find(
-            window => window._browserWindow.webContents.id === id,
+            window => window.browserWindow.webContents.id === id,
         )
     }
 
@@ -154,6 +154,8 @@ exports.pathByWebContentsId = id => {
     }
     return window.filePath
 }
+
+exports.byWebContentsId = Window.byWebContentsId
 
 // For testing
 
