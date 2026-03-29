@@ -79,6 +79,10 @@ class Window {
     }
 
     static byWebContentsId(id) {
+        const idType = typeof id
+        if (idType !== "number") {
+            throw new Error(`Window ID must be a number; was ${idType}`)
+        }
         return Object.values(Window.instances).find(
             window => window._browserWindow.webContents.id === id,
         )
