@@ -480,3 +480,7 @@ exports.createHtmlElement = () => new HtmlElement()
 exports.createEvent = () => new Event()
 
 exports.createWindow = () => new Window()
+
+exports.createDocumentRendering = () => ({
+    render() {},
+})

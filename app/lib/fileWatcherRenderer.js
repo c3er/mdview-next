@@ -1,6 +1,7 @@
-const documentRendering = require("./documentRenderingRenderer")
 const ipc = require("./ipcRenderer")
 const log = require("./logRenderer")
+
+let documentRendering
 
 let _documentPath
 
@@ -18,7 +19,9 @@ async function dispatchFileChanges(filePaths) {
     }
 }
 
-exports.init = async () => {
+exports.init = async documentRenderingMock => {
+    documentRendering = documentRenderingMock ?? require("./documentRenderingRenderer")
+
     _documentPath = await fetchDocumentPath()
     log.debug(`Got path: ${_documentPath}`)
 
