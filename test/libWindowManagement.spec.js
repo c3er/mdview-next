@@ -90,4 +90,9 @@ describe("Window management", () => {
         const file = "non-existing-testfile.md"
         assert.throws(() => windowManagement.close(file), new RegExp(file))
     })
+
+    it("throws an error at using a non-number web-contents ID", () => {
+        const id = "123"
+        assert.throws(() => windowManagement.byWebContentsId(id), new RegExp("string"))
+    })
 })
