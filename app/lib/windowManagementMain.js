@@ -19,49 +19,49 @@ class Window {
         close: [],
     }
 
-    browserWindow
+    _browserWindow
 
     filePath
     menu
 
     constructor(filePath) {
-        this.browserWindow = this._createBrowserWindow()
-        contentBlocking.setup(this.browserWindow)
+        this._browserWindow = this._createBrowserWindow()
+        contentBlocking.setup(this._browserWindow)
         this.filePath = filePath
         this.menu = menu.create(this)
         this._storeInstance()
     }
 
     get id() {
-        return this.browserWindow.webContents.id
+        return this._browserWindow.webContents.id
     }
 
     // For testing
     get focusIsCalled() {
-        return this.browserWindow.focusIsCalled
+        return this._browserWindow.focusIsCalled
     }
 
     // For testing
     get closeIsCalled() {
-        return this.browserWindow.closeIsCalled
+        return this._browserWindow.closeIsCalled
     }
 
     focus() {
-        this.browserWindow.focus()
+        this._browserWindow.focus()
     }
 
     close() {
         this._fireEvent("close")
-        this.browserWindow.close()
+        this._browserWindow.close()
         this._deleteInstance()
     }
 
     send(messageId, ...args) {
-        ipc.send(this.browserWindow, messageId, ...args)
+        ipc.send(this._browserWindow, messageId, ...args)
     }
 
     openDevTools() {
-        this.browserWindow.webContents.openDevTools()
+        this._browserWindow.webContents.openDevTools()
     }
 
     setMenuItemEnabled(itemId, isEnabled) {
@@ -71,7 +71,7 @@ class Window {
     unblock(url) {
         contentBlocking.unblock(url)
         for (const window of Object.values(Window.instances).filter(window => window !== this)) {
-            ipc.send(window.browserWindow, ipc.messages.intern.contentUnblocked, url)
+            ipc.send(window._browserWindow, ipc.messages.intern.contentUnblocked, url)
         }
     }
 

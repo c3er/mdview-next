@@ -76,12 +76,7 @@ function watchFiles() {
         }
         for (const [id, filePaths] of numberObjectPairs(toNotify)) {
             log.debug(`Notifying ${id} about these files:`, filePaths)
-            ipc.send(
-                windowManagement.byWebContentsId(id).browserWindow,
-                ipc.messages.intern.filesChanged,
-                filePaths,
-            )
-            log.debug(`Notified ${id} about these files:`, filePaths)
+            windowManagement.byWebContentsId(id).send(ipc.messages.intern.filesChanged, filePaths)
         }
     }, UPDATE_INTERVAL_MS)
 }
