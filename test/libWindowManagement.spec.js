@@ -63,11 +63,6 @@ describe("Window management", () => {
         assert(openedWindow.closeIsCalled)
     })
 
-    it("throws an error at attempt to close a non existing window", () => {
-        const file = "non-existing-testfile.md"
-        assert.throws(() => windowManagement.close(file), new RegExp(file))
-    })
-
     it("unblocks a URL", () => {
         const expectedUrl = "http://example.com"
         const file1 = "non-existing-testfile1.md"
@@ -89,5 +84,10 @@ describe("Window management", () => {
 
         assert(!contentBlocking.isBlocked(expectedUrl))
         assert.strictEqual(messageSentCount, 1)
+    })
+
+    it("throws an error at attempt to close a non existing window", () => {
+        const file = "non-existing-testfile.md"
+        assert.throws(() => windowManagement.close(file), new RegExp(file))
     })
 })
