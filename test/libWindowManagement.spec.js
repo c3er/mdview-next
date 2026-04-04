@@ -95,4 +95,27 @@ describe("Window management", () => {
         const id = "123"
         assert.throws(() => windowManagement.byWebContentsId(id), new RegExp("string"))
     })
+
+    describe("Event handling", () => {
+        const file = "non-existing-testfile.md"
+
+        let window
+
+        beforeEach(() => (window = windowManagement.open(file)))
+
+        it('handles "close" event', () => {
+            windowManagement.addEventHandler("close", id => assert.strictEqual(id, window.id))
+        })
+
+        it("throws an error, if trying to add an handler for a not supported event", () => {
+            const event = "not-supported-event"
+            assert.throws(
+                () =>
+                    windowManagement.addEventHandler(event, () =>
+                        assert.fail("Should never be called"),
+                    ),
+                new RegExp(event),
+            )
+        })
+    })
 })
