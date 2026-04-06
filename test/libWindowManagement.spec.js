@@ -20,13 +20,13 @@ describe("Window management", () => {
 
     beforeEach(() => {
         mocking.cleanup()
+        windowManagement.reset()
+
         const electronMock = mocking.createElectron()
         menu.init(electronMock)
         ipc.init(electronMock)
         windowManagement.init(defaultFile, electronMock)
     })
-
-    afterEach(windowManagement.reset)
 
     it("opens a window with default file", () => {
         windowManagement.open()
