@@ -76,7 +76,7 @@ class IpcChannel {
 }
 
 class IpcChannelCollection {
-    _data = {}
+    _channels = {}
 
     name = ""
 
@@ -85,46 +85,46 @@ class IpcChannelCollection {
     }
 
     addTarget(message, callback) {
-        this._addCallback(message, callback, channel => channel.addTarget(callback))
+        this._addCallback(message, channel => channel.addTarget(callback))
     }
 
     addSourceAssertion(message, callback) {
-        this._addCallback(message, callback, channel => channel.addSourceAssertion(callback))
+        this._addCallback(message, channel => channel.addSourceAssertion(callback))
     }
 
     addTargetAssertion(message, callback) {
-        this._addCallback(message, callback, channel => channel.addTargetAssertion(callback))
+        this._addCallback(message, channel => channel.addTargetAssertion(callback))
     }
 
     setInvokeAssertion(message, callback) {
-        this._addCallback(message, callback, channel => channel.setInvokeAssertion(callback))
+        this._addCallback(message, channel => channel.setInvokeAssertion(callback))
     }
 
     send(message, event, ...args) {
-        if (!Object.hasOwn(this._data, message)) {
+        if (!Object.hasOwn(this._channels, message)) {
             assert.fail(`Message "${message}" is not registered in channel "${this.name}"`)
         }
-        this._data[message].send(event, ...args)
+        this._channels[message].send(event, ...args)
     }
 
     async invoke(message, event, ...args) {
-        if (!Object.hasOwn(this._data, message)) {
+        if (!Object.hasOwn(this._channels, message)) {
             assert.fail(`Message "${message}" is not registered in channel "${this.name}"`)
         }
-        return await this._data[message].invoke(event, ...args)
+        return await this._channels[message].invoke(event, ...args)
     }
 
     clear() {
-        this._data = {}
+        this._channels = {}
     }
 
-    _addCallback(message, callback, addMethod) {
-        if (Object.hasOwn(this._data, message)) {
-            addMethod(this._data[message], callback)
+    _addCallback(message, addMethod) {
+        if (Object.hasOwn(this._channels, message)) {
+            addMethod(this._channels[message])
         } else {
             const channel = new IpcChannel()
-            addMethod(channel, callback)
-            this._data[message] = channel
+            addMethod(channel)
+            this._channels[message] = channel
         }
     }
 }
