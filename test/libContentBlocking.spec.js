@@ -39,7 +39,7 @@ describe("Content blocking", () => {
                     webRequestMock.registerOnBeforeRequest(details =>
                         assert.strictEqual(details.url, expectedUrl),
                     )
-                    browserWindowMock = mocking.createBrowserWindow(webRequestMock)
+                    browserWindowMock = mocking.createBrowserWindow(1, webRequestMock)
                 })
 
                 it("blocks a URL", () => {

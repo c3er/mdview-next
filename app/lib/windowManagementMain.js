@@ -37,6 +37,11 @@ class Window {
     }
 
     // For testing
+    set id(value) {
+        this._browserWindow.webContents.id = value
+    }
+
+    // For testing
     get focusIsCalled() {
         return this._browserWindow.focusIsCalled
     }
@@ -81,7 +86,9 @@ class Window {
     }
 
     static open(filePath) {
-        ;(Window.instances[filePath] ?? new Window(filePath)).focus()
+        const instance = Window.instances[filePath] ?? new Window(filePath)
+        instance.focus()
+        return instance
     }
 
     static byFilePath(filePath) {
@@ -164,10 +171,17 @@ exports.init = (defaultFile, electronMock) => {
     )
 }
 
-exports.open = filePath => {
+// Parameter "id" is for testing
+exports.open = (filePath, id) => {
     filePath ??= _lastOpenedFilePath ?? _defaultFilePath
-    Window.open(filePath)
+    const window = Window.open(filePath)
+
+    // Do not assign to "_lastOpenedFilePath" until the window was opened successfully
     _lastOpenedFilePath = filePath
+
+    if (id) {
+        window.id = id
+    }
 }
 
 exports.close = filePath => Window.byFilePath(filePath).close()
@@ -194,4 +208,7 @@ exports.windows = () => Window.instances
 
 exports.lastOpenedFilePath = () => _lastOpenedFilePath
 
-exports.reset = () => Window.reset()
+exports.reset = () => {
+    Window.reset()
+    _lastOpenedFilePath = null
+}

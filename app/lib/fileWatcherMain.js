@@ -6,10 +6,17 @@ const windowManagement = require("./windowManagementMain")
 
 const UPDATE_INTERVAL_MS = 1000
 
-const _subscriptions = {}
+let _subscriptions
+let _setInterval
 
 class Subscription {
+    _fsStat
+
     fileModificationTimes = {}
+
+    constructor(fsStatMock) {
+        this._fsStat = fsStatMock ?? fs.stat
+    }
 
     get filePaths() {
         return Object.keys(this.fileModificationTimes)
@@ -24,7 +31,7 @@ class Subscription {
     }
 
     async isModified(filePath) {
-        return (await fs.stat(filePath)).mtimeMs !== this.fileModificationTimes[filePath]
+        return (await this._fsStat(filePath)).mtimeMs !== this.fileModificationTimes[filePath]
     }
 
     toString() {
@@ -32,7 +39,7 @@ class Subscription {
     }
 
     async _update(filePath) {
-        this.fileModificationTimes[filePath] = (await fs.stat(filePath)).mtimeMs
+        this.fileModificationTimes[filePath] = (await this._fsStat(filePath)).mtimeMs
     }
 }
 
@@ -41,10 +48,10 @@ function unsubscribe(id) {
     delete _subscriptions[id]
 }
 
-async function subscribe(id, filePath) {
+async function subscribe(id, filePath, fsStatMock) {
     log.debug(`Window ${id} subscribed for "${filePath}`)
     if (!_subscriptions[id]) {
-        _subscriptions[id] = new Subscription()
+        _subscriptions[id] = new Subscription(fsStatMock)
     }
     await _subscriptions[id].add(filePath)
     windowManagement.addEventHandler("close", unsubscribe)
@@ -55,7 +62,7 @@ function numberObjectPairs(obj) {
 }
 
 function watchFiles() {
-    setInterval(async () => {
+    _setInterval(async () => {
         const toNotify = {}
         for (const [id, subscription] of numberObjectPairs(_subscriptions)) {
             try {
@@ -81,7 +88,13 @@ function watchFiles() {
     }, UPDATE_INTERVAL_MS)
 }
 
-exports.init = () => {
+function reset() {
+    _subscriptions = {}
+}
+
+exports.init = setIntervalMock => {
+    reset()
+    _setInterval = setIntervalMock ?? setInterval
     ipc.listen(ipc.messages.intern.watchFile, subscribe)
     watchFiles()
 }

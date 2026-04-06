@@ -41,10 +41,14 @@ class IpcChannel {
     _targetAssertionCallbacks = []
     _invokeAssertionCallback = null
 
+    listenerPromises = []
+
     send(event, ...args) {
-        this._targetCallbacks.forEach(callback => callback(event, ...args))
-        this._sourceAssertionCallbacks.forEach(callback => callback(event, ...args))
-        this._targetAssertionCallbacks.forEach(callback => callback(event, ...args))
+        this.listenerPromises = this._targetCallbacks
+            .concat(this._sourceAssertionCallbacks)
+            .concat(this._targetAssertionCallbacks)
+            .map(callback => callback(event, ...args))
+            .filter(Boolean)
     }
 
     invoke(event, ...args) {
@@ -114,6 +118,12 @@ class IpcChannelCollection {
         return await this._channels[message].invoke(event, ...args)
     }
 
+    async waitForListeners() {
+        for (const channel of Object.values(this._channels)) {
+            await Promise.all(channel.listenerPromises)
+        }
+    }
+
     clear() {
         this._channels = {}
     }
@@ -132,10 +142,12 @@ class IpcChannelCollection {
 class BrowserWindow {
     _webRequest
 
+    id = -1
     closeIsCalled = false
     focusIsCalled = false
 
-    constructor(webRequest) {
+    constructor(id, webRequest) {
+        this.id = id
         this._webRequest = webRequest
     }
 
@@ -143,6 +155,7 @@ class BrowserWindow {
         send(message, ...args) {
             _ipcToRendererChannels.send(message, _electronIpcEvent, ...args)
         },
+        id: this.id,
         session: {
             webRequest: {
                 onBeforeRequest: this._webRequest?.registerOnBeforeRequest ?? (() => {}),
@@ -196,7 +209,11 @@ class Electron {
         },
     }
 
-    BrowserWindow = BrowserWindow
+    BrowserWindow = class extends BrowserWindow {
+        constructor() {
+            super(1, new WebRequest())
+        }
+    }
     Menu = Menu
 }
 
@@ -272,6 +289,19 @@ class Window {
     }
 }
 
+class FsStat {
+    mtimeMs = 0
+
+    get executor() {
+        return () => {
+            const that = this
+            return Promise.resolve({
+                mtimeMs: that.mtimeMs,
+            })
+        }
+    }
+}
+
 const _ipcToMainChannels = new IpcChannelCollection("to-main-channel")
 const _ipcToRendererChannels = new IpcChannelCollection("to-renderer-channel")
 
@@ -285,7 +315,7 @@ exports.cleanup = () => {
 
 exports.createWebRequest = () => new WebRequest()
 
-exports.createBrowserWindow = webRequest => new BrowserWindow(webRequest)
+exports.createBrowserWindow = (id, webRequest) => new BrowserWindow(id, webRequest)
 
 exports.createElectron = () => new Electron()
 
@@ -319,6 +349,10 @@ exports.ipc = {
     sendToRenderer(message, event, ...args) {
         _ipcToRendererChannels.addSourceAssertion(message, () => {})
         _ipcToRendererChannels.send(message, event, ...args)
+    },
+    async waitForListeners() {
+        await _ipcToMainChannels.waitForListeners()
+        await _ipcToRendererChannels.waitForListeners()
     },
 }
 
@@ -484,3 +518,5 @@ exports.createWindow = () => new Window()
 exports.createDocumentRendering = () => ({
     render() {},
 })
+
+exports.createFsStat = () => new FsStat()
