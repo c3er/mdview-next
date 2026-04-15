@@ -7,7 +7,7 @@ exports.intern = {
     contentBlocked: "content-blocked",
     contentUnblocked: "content-unblocked",
     fetchApplicationVersion: "fetch-application-version",
-    fetchDocumentPath: "fetch-document-path",
+    fetchFilePaths: "fetch-file-paths",
     filesChanged: "files-changed",
     openFile: "open-file",
     setMenuItemEnabled: "set-menu-item-enabled",

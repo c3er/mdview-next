@@ -95,6 +95,13 @@ function reset() {
 exports.init = setIntervalMock => {
     reset()
     _setInterval = setIntervalMock ?? setInterval
+    ipc.handle(ipc.messages.intern.fetchFilePaths, id => ({
+        applicationSettings: "",
+        contentBlocking: "",
+        document: windowManagement.byWebContentsId(id).filePath,
+        documentSettings: "",
+        fileHistory: "",
+    }))
     ipc.listen(ipc.messages.intern.watchFile, subscribe)
     watchFiles()
 }

@@ -83,10 +83,13 @@ describe("File watcher", () => {
 
             ipc.init(mocking.createElectron())
             lib.registerElectronLogIpc()
-            mocking.ipc.register.rendererInvoke(
-                ipc.messages.intern.fetchDocumentPath,
-                () => DOCUMENT_PATH,
-            )
+            mocking.ipc.register.rendererInvoke(ipc.messages.intern.fetchFilePaths, () => ({
+                applicationSettings: "",
+                contentBlocking: "",
+                document: DOCUMENT_PATH,
+                documentSettings: "",
+                fileHistory: "",
+            }))
             mocking.ipc.register.mainOn(ipc.messages.intern.watchFile, (_, filePath) =>
                 assert.strictEqual(filePath, DOCUMENT_PATH),
             )
