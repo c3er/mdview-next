@@ -7,6 +7,20 @@ console.log(`Current directory: ${process.cwd()}`)
 const logDir = "logs"
 const currentLogFile = path.join(logDir, "main.log")
 
+function output(line) {
+    let format
+    if (line.includes("[debug]")) {
+        format = "\x1b[2m%s\x1b[0m"
+    } else if (line.includes("[info]")) {
+        format = "%s"
+    } else if (line.includes("[error]")) {
+        format = "\x1b[31m%s\x1b[0m"
+    } else {
+        format = "\x1b[2m%s\x1b[0m"
+    }
+    console.log(format, line)
+}
+
 try {
     fs.renameSync(
         currentLogFile,
@@ -52,12 +66,12 @@ setInterval(() => {
 
     const lines = content.split("\n")
     if (lastLine) {
-        console.log(lastLine + lines.shift())
+        output(lastLine + lines.shift())
     }
     lastLine = lines.pop()
 
     for (const line of lines) {
-        console.log(line)
+        output(line)
     }
 
     if (content.includes("Main process stopped")) {
