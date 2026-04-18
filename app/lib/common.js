@@ -2,6 +2,14 @@ exports.APPLICATION_NAME = "Markdown Viewer"
 
 exports.FILE_EXTENSIONS = ["md", "markdown"]
 
+exports.SYSTEM_THEME = "system"
+
+exports.LIGHT_THEME = "light"
+
+exports.DARK_THEME = "dark"
+
+exports.ZOOM_DEFAULT = 1.0
+
 exports.isWebURL = url =>
     !url.startsWith("file://") && !url.startsWith("devtools://") && url.includes("://")
 

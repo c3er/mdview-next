@@ -176,6 +176,8 @@ exports.forward = () => goStep(canGoForward, _locations.back, _locations.forward
 
 exports.register = callback => _callbacks.push(callback)
 
+exports.currentFilePath = () => _locations.current.filePath
+
 // For testing
 
 exports.go = go
