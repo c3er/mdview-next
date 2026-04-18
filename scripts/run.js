@@ -8,6 +8,8 @@ const logDir = "logs"
 const currentLogFile = path.join(logDir, "main.log")
 
 function output(line) {
+    // See https://stackoverflow.com/a/41407246/13949398 (How to change node.js's console font color?)
+    // and https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
     let format
     if (line.includes("[debug]")) {
         format = "\x1b[2m%s\x1b[0m"
@@ -16,6 +18,7 @@ function output(line) {
     } else if (line.includes("[error]")) {
         format = "\x1b[31m%s\x1b[0m"
     } else {
+        // Assuming, that it belongs to a debug message
         format = "\x1b[2m%s\x1b[0m"
     }
     console.log(format, line)
