@@ -1,4 +1,5 @@
 const assert = require("assert")
+const path = require("path")
 
 const common = require("../app/lib/common")
 
@@ -306,6 +307,8 @@ const _ipcToMainChannels = new IpcChannelCollection("to-main-channel")
 const _ipcToRendererChannels = new IpcChannelCollection("to-renderer-channel")
 
 let _electronIpcEvent = {}
+
+exports.dataDir = path.join(__dirname, "data")
 
 exports.cleanup = () => {
     _electronIpcEvent = {}
