@@ -2,9 +2,11 @@ const assert = require("assert")
 
 const contentBlocking = require("../app/lib/contentBlockingMain")
 const ipc = require("../app/lib/ipcMainIntern")
+const log = require("../app/lib/logMain")
 const menu = require("../app/lib/menuMain")
 const windowManagement = require("../app/lib/windowManagementMain")
 
+const lib = require("./testLib")
 const mocking = require("./mocking")
 
 describe("Window management", () => {
@@ -18,11 +20,13 @@ describe("Window management", () => {
         return windows
     }
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        await lib.removeData()
         mocking.cleanup()
         windowManagement.reset()
 
         const electronMock = mocking.createElectron()
+        await log.init(lib.LOG_DIR, true)
         menu.init(electronMock)
         ipc.init(electronMock)
         windowManagement.init(defaultFile, electronMock)
