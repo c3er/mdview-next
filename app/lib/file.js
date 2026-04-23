@@ -42,6 +42,11 @@ exports.isText = async filePath => {
         .every(byte => byte >= SPACE_CHAR || [LF_CHAR, CR_CHAR, TAB_CHAR].includes(byte))
 }
 
+exports.extractFileEnding = filePath => {
+    const parts = filePath.split(".")
+    return parts.length > 1 ? parts.at(-1).toLowerCase() : ""
+}
+
 exports.transformRelativePath = (documentDirectory, filePath) =>
     path.join(documentDirectory, filePath).replace("#", "%23")
 

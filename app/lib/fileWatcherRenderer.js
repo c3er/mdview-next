@@ -1,5 +1,7 @@
 const ipc = require("./ipcRenderer")
 const log = require("./logRenderer")
+const menu = require("./menuRenderer")
+const settings = require("./settingsRenderer")
 
 let documentRendering
 
@@ -38,6 +40,12 @@ async function dispatchFileUpdates(filePaths) {
 
     // TODO Implement missing behaviors...
 
+    if (behaviors.some(behavior => behavior.shallApplySettings)) {
+        settings.apply()
+    }
+    if (behaviors.some(behavior => behavior.shallUpdateMenu)) {
+        menu.update()
+    }
     if (behaviors.some(behavior => behavior.shallRenderDocument)) {
         const documentPath = _paths.document
         log.debug("Handling document:", documentPath)
@@ -68,4 +76,4 @@ exports.init = async documentRenderingMock => {
     ipc.listen(ipc.messages.intern.filesChanged, dispatchFileUpdates)
 }
 
-exports.documentPath = () => _paths.document
+exports.paths = () => _paths

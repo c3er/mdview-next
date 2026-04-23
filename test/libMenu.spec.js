@@ -3,7 +3,11 @@ const mocking = require("./mocking")
 
 const about = require("../app/lib/aboutRenderer")
 const error = require("../app/lib/errorRenderer")
+const navigation = require("../app/lib/navigationRenderer")
+const renderer = require("../app/lib/commonRenderer")
 const search = require("../app/lib/searchRenderer")
+const settings = require("../app/lib/settingsRenderer")
+const storage = require("../app/lib/storageRenderer")
 
 describe("Menu module", () => {
     describe("Handlers", () => {
@@ -14,15 +18,25 @@ describe("Menu module", () => {
 
         beforeEach(() => {
             mocking.cleanup()
+
+            const documentMock = mocking.createDocument()
+            const windowMock = mocking.createWindow()
+            const electronMock = mocking.createElectron()
+
             lib.registerElectronLogIpc()
             lib.registerMenuItemEnabledMessage()
-            ipc.init(mocking.createElectron())
+            ipc.init(electronMock)
             menuHandling.init()
 
-            const document = mocking.createDocument()
-            about.init(document, mocking.createElectron())
-            error.init(document)
-            search.init(document, () => {})
+            renderer.init(documentMock, windowMock)
+            about.init(documentMock, electronMock)
+            error.init(documentMock)
+            search.init(documentMock, () => {})
+            navigation.init(documentMock, lib.DEFAULT_DOCUMENT_PATH, electronMock)
+            storage.init(lib.STORAGE_PATHS, electronMock, mocking.createTheme())
+
+            settings.init(documentMock, windowMock)
+            settings.setFilePath(lib.DEFAULT_DOCUMENT_PATH)
         })
 
         describe("Handlers", () => {

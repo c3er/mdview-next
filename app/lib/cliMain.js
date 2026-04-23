@@ -11,7 +11,12 @@ const defaults = {
     isTest: false,
     isMainProcess: false,
     logDir: "",
+    storageDir: "",
     filePath: path.join(__dirname, "..", "..", "README.md"),
+}
+
+function isDevelopment() {
+    return Boolean(process.defaultApp)
 }
 
 exports.IS_MAIN_SWITCH = "--main"
@@ -20,7 +25,11 @@ exports.defaults = defaults
 
 exports.init = electronMock => {
     electron = electronMock ?? require("electron")
+
     defaults.logDir = path.join(electron.app.getPath("userData"), "logs")
+    defaults.storageDir = isDevelopment()
+        ? path.join(__dirname, "..", "..", ".storage")
+        : path.join(electron.app.getPath("userData"), "storage")
 }
 
 exports.parse = args => {
@@ -42,6 +51,11 @@ exports.parse = args => {
             type: "string",
             default: defaults.logDir,
         })
+        .option("storage-dir", {
+            describe: "Override application's default directory for storing data",
+            type: "string",
+            default: defaults.storageDir,
+        })
         .help().argv
     log.debug("Parsed by Yargs:", argv)
 
@@ -49,6 +63,7 @@ exports.parse = args => {
         isTest: argv.test,
         isMainProcess: argv.main,
         logDir: argv.logDir,
+        storageDir: argv.storageDir,
 
         // Assume that the last argument is the file to open. If the application is
         // invoked by Playwright, the Yargs hideBin function fails.

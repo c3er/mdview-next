@@ -8,6 +8,7 @@ const log = require("./logRenderer")
 const navigation = require("./navigationRenderer")
 
 let electron
+let theme
 
 const JSON_INDENTATION = 4
 
@@ -16,15 +17,11 @@ const DOCUMENT_SETTINGS_VERSION = 0
 const FILE_HISTORY_VERSION = 0
 const CONTENT_BLOCKING_VERSION = 0
 
-const APPLICATION_SETTINGS_FILE = "app-settings.json"
-const DOCUMENT_SETTINGS_FILE = "doc-settings.json"
-const FILE_HISTORY_FILE = "file-history.json"
-const CONTENT_BLOCKING_FILE = "content-blocking.json"
-
 const WINDOW_WIDTH_DEFAULT = 1024
 const WINDOW_HEIGHT_DEFAULT = 768
 
-let _dataDir
+let _paths
+let _defaultTheme
 
 let _applicationSettings
 let _fileHistory
@@ -40,11 +37,11 @@ class StorageBase {
     curentVersion
     actualVersion
 
-    constructor(currentVersion, storageDir, storageFile) {
-        StorageBase._initStorageDir(storageDir)
+    constructor(currentVersion, storagePath) {
+        fs.mkdirSync(path.dirname(storagePath), { recursive: true })
 
-        this._storagePath = path.join(storageDir, storageFile)
-        this._data = StorageBase._initData(this._storagePath)
+        this._storagePath = storagePath
+        this._data = StorageBase._initData(storagePath)
 
         this.curentVersion = currentVersion
         this.actualVersion = this._data[this.#VERSION_KEY] ?? 0
@@ -135,13 +132,13 @@ class ApplicationSettings extends StorageBase {
     WINDOW_WIDTH_DEFAULT = WINDOW_WIDTH_DEFAULT
     WINDOW_HEIGHT_DEFAULT = WINDOW_HEIGHT_DEFAULT
 
-    constructor(storageDir, storageFile) {
-        super(APPLICATION_SETTINGS_VERSION, storageDir, storageFile)
+    constructor(storagePath) {
+        super(APPLICATION_SETTINGS_VERSION, storagePath)
         this._updateVersion()
     }
 
     get theme() {
-        return this._loadValue(this.#THEME_KEY, electron.nativeTheme.themeSource)
+        return this._loadValue(this.#THEME_KEY, _defaultTheme)
     }
 
     set theme(value) {
@@ -150,7 +147,7 @@ class ApplicationSettings extends StorageBase {
             throw new Error(`"${value}" is not in allowed values ${allowedThemes.join(", ")}`)
         }
 
-        electron.nativeTheme.themeSource = value
+        theme.set(value)
         this._storeValue(this.#THEME_KEY, value)
     }
 
@@ -302,8 +299,8 @@ class DocumentSettings extends StorageBase {
 
     _documentData
 
-    constructor(storageDir, storageFile, documentPath) {
-        super(DOCUMENT_SETTINGS_VERSION, storageDir, storageFile)
+    constructor(storagePath, documentPath) {
+        super(DOCUMENT_SETTINGS_VERSION, storagePath)
         if (!this._data[documentPath]) {
             this._data[documentPath] = {}
         }
@@ -375,8 +372,8 @@ class DocumentSettings extends StorageBase {
 }
 
 class FileHistory extends StorageBase {
-    constructor(storageDir, storageFile) {
-        super(FILE_HISTORY_VERSION, storageDir, storageFile)
+    constructor(storagePath) {
+        super(FILE_HISTORY_VERSION, storagePath)
         if (!this._data.files) {
             this._data.files = []
         }
@@ -466,8 +463,8 @@ class ContentBlocking extends StorageBase {
 
     contents = []
 
-    constructor(storageDir, storageFile) {
-        super(CONTENT_BLOCKING_VERSION, storageDir, storageFile)
+    constructor(storagePath) {
+        super(CONTENT_BLOCKING_VERSION, storagePath)
         this.contents = (this._data[this.#CONTENTS_KEY] ?? []).map(Content.fromObject)
     }
 
@@ -513,13 +510,15 @@ function calcWindowPositionDefault(widthDefault, heightDefault) {
 function loadApplicationSettings() {
     return (
         _applicationSettings ??
-        (_applicationSettings = new ApplicationSettings(_dataDir, APPLICATION_SETTINGS_FILE))
+        (_applicationSettings = new ApplicationSettings(_paths.applicationSettings))
     )
 }
 
-exports.init = (dataDir, electronMock) => {
+exports.init = async (paths, electronMock, themeMock) => {
     electron = electronMock ?? require("electron")
-    exports.dataDir = _dataDir = dataDir
+    theme = themeMock ?? require("./themeRenderer")
+    _paths = paths
+    _defaultTheme = await theme.fetch()
 }
 
 exports.loadApplicationSettings = loadApplicationSettings
@@ -529,18 +528,16 @@ exports.loadDocumentSettings = documentPath => {
     return (
         _documentSettings[documentPath] ??
         (_documentSettings[documentPath] = new DocumentSettings(
-            _dataDir,
-            DOCUMENT_SETTINGS_FILE,
+            _paths.documentSettings,
             documentPath,
         ))
     )
 }
 
-exports.loadFileHistory = () =>
-    _fileHistory ?? (_fileHistory = new FileHistory(_dataDir, FILE_HISTORY_FILE))
+exports.loadFileHistory = () => _fileHistory ?? (_fileHistory = new FileHistory(_paths.fileHistory))
 
 exports.loadContentBlocking = () =>
-    _contentBlocking ?? (_contentBlocking = new ContentBlocking(_dataDir, CONTENT_BLOCKING_FILE))
+    _contentBlocking ?? (_contentBlocking = new ContentBlocking(_paths.contentBlocking))
 
 exports.reset = () => {
     _applicationSettings = _fileHistory = _contentBlocking = null

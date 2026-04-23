@@ -1,8 +1,10 @@
 const fs = require("fs/promises")
+const path = require("path")
 
 const ipc = require("./ipcMainIntern")
 const log = require("./logMain")
 const windowManagement = require("./windowManagementMain")
+const storage = require("./storageConstants")
 
 const UPDATE_INTERVAL_MS = 1000
 
@@ -92,15 +94,15 @@ function reset() {
     _subscriptions = {}
 }
 
-exports.init = setIntervalMock => {
+exports.init = (storageDir, setIntervalMock) => {
     reset()
     _setInterval = setIntervalMock ?? setInterval
     ipc.handle(ipc.messages.intern.fetchFilePaths, id => ({
-        applicationSettings: "",
-        contentBlocking: "",
+        applicationSettings: path.join(storageDir, storage.APPLICATION_SETTINGS_FILE),
+        contentBlocking: path.join(storageDir, storage.CONTENT_BLOCKING_FILE),
         document: windowManagement.byWebContentsId(id).filePath,
-        documentSettings: "",
-        fileHistory: "",
+        documentSettings: path.join(storageDir, storage.DOCUMENT_SETTINGS_FILE),
+        fileHistory: path.join(storageDir, storage.FILE_HISTORY_FILE),
     }))
     ipc.listen(ipc.messages.intern.watchFile, subscribe)
     watchFiles()

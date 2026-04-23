@@ -10,7 +10,7 @@ const storage = require("../app/lib/storageRenderer")
 async function initStorage() {
     await lib.removeData()
     storage.reset()
-    storage.init(mocking.dataDir, mocking.electron)
+    await storage.init(lib.STORAGE_PATHS, mocking.createElectron(), mocking.createTheme())
 }
 
 describe("Storage", () => {

@@ -5,6 +5,7 @@ const ipc = require("./ipcRenderer")
 const log = require("./logRenderer")
 const navigation = require("./navigationRenderer")
 const search = require("./searchRenderer")
+const settings = require("./settingsRenderer")
 
 const shared = require("./menuShared")
 
@@ -24,7 +25,7 @@ exports.init = () => {
     handle(shared.id.navigateForward, navigation.forward)
     handle(shared.id.print, () => log.debug('Menu entry "Print" called'))
     handle(shared.id.rawText, () => log.debug('Menu entry "Show Raw Text" called'))
-    handle(shared.id.settings, () => log.debug('Menu entry "Settings" called'))
+    handle(shared.id.settings, () => settings.open())
     handle(shared.id.tocForgetDocumentOverride, () =>
         log.debug('Menu entry "TOC -> Forget Document Override" called'),
     )

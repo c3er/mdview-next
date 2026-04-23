@@ -44,7 +44,7 @@ describe("File watcher", () => {
                 fileChangeNotificationCount++
             })
 
-            fileWatcher.init(callback => (intervallCallback = callback))
+            fileWatcher.init(lib.DATA_DIR, callback => (intervallCallback = callback))
         })
 
         it("does nothing without any subscription", async () => {
@@ -102,7 +102,7 @@ describe("File watcher", () => {
         })
 
         it("has a document path", () => {
-            assert.strictEqual(fileWatcher.documentPath(), DOCUMENT_PATH)
+            assert.strictEqual(fileWatcher.paths().document, DOCUMENT_PATH)
         })
 
         it("dispatches file changes", () => {

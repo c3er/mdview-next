@@ -1,0 +1,3 @@
+exports.setVisibilityForApplication = () => {}
+
+exports.setVisibilityForDocument = () => {}

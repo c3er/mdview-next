@@ -10,14 +10,16 @@ const menuHandling = require("./lib/menuHandlingRenderer")
 const navigation = require("./lib/navigationRenderer")
 const renderer = require("./lib/commonRenderer")
 const search = require("./lib/searchRenderer")
+const settings = require("./lib/settingsRenderer")
 const statusBar = require("./lib/statusBarRenderer")
+const storage = require("./lib/storageRenderer")
 const title = require("./lib/titleRenderer")
 
 async function domContentLoadedHandler() {
     ipc.init()
     log.debug("Initializing...")
     menuHandling.init()
-    renderer.init(document)
+    renderer.init(document, window)
     statusBar.init(document)
     documentRendering.init(document)
     contentBlocking.init(document, window)
@@ -25,12 +27,17 @@ async function domContentLoadedHandler() {
     about.init(document)
 
     await fileWatcher.init()
-    const documentPath = fileWatcher.documentPath()
+    const paths = fileWatcher.paths()
+    const documentPath = paths.document
 
+    await storage.init(paths)
     await title.init(document, documentPath)
     navigation.init(document, documentPath)
+    settings.init(document, window)
     search.init(document, async () => await documentRendering.render(documentPath))
+
     navigation.register(location => title.updatePrefix(location.toString()))
+    settings.setFilePath(documentPath)
 
     renderer.contentElement().focus()
 

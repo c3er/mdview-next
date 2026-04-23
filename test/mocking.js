@@ -1,5 +1,4 @@
 const assert = require("assert")
-const path = require("path")
 
 const common = require("../app/lib/common")
 
@@ -220,6 +219,10 @@ class Electron {
 
 class HtmlElement {
     attributes = []
+    classList = {
+        add() {},
+        remove() {},
+    }
     innerHTML = ""
     innerText = ""
     style = {
@@ -288,6 +291,10 @@ class Window {
             height: 0,
         }
     }
+
+    ResizeObserver = class {
+        observe() {}
+    }
 }
 
 class FsStat {
@@ -303,12 +310,18 @@ class FsStat {
     }
 }
 
+class Theme {
+    fetch() {
+        return new Promise(resolve => resolve(common.SYSTEM_THEME))
+    }
+
+    set() {}
+}
+
 const _ipcToMainChannels = new IpcChannelCollection("to-main-channel")
 const _ipcToRendererChannels = new IpcChannelCollection("to-renderer-channel")
 
 let _electronIpcEvent = {}
-
-exports.dataDir = path.join(__dirname, "data")
 
 exports.cleanup = () => {
     _electronIpcEvent = {}
@@ -523,3 +536,5 @@ exports.createDocumentRendering = () => ({
 })
 
 exports.createFsStat = () => new FsStat()
+
+exports.createTheme = () => new Theme()

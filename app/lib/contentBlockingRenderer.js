@@ -125,4 +125,6 @@ exports.hasBlockedElements = hasBlockedElements
 
 exports.changeInfoElementVisiblity = changeInfoElementVisiblity
 
+exports.setShallBlockContent = () => {}
+
 exports.reset = reset

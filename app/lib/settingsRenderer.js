@@ -1,0 +1,354 @@
+const common = require("./common")
+const contentBlocking = require("./contentBlockingRenderer")
+const dialog = require("./dialogRenderer")
+const fileHistory = require("./fileHistoryRenderer")
+const fileLib = require("./file")
+const menu = require("./menuRenderer")
+const question = require("./questionRenderer")
+const renderer = require("./commonRenderer")
+const storage = require("./storageRenderer")
+
+const DIALOG_ID = "settings"
+const UNSELECTED_TAB_CLASS = "unselected-tab"
+const DISCOURAGE_CLASS = "discourage"
+const WARN_TEXT_CLASS = "warn-text"
+
+let _document
+let _window
+let _dialogElement
+let _dialogForm
+
+let _tabElements
+let _tabContentElements
+let _scrollContainer
+
+let _systemThemeRadioButton
+let _lightThemeRadioButton
+let _darkThemeRadioButton
+let _zoomInput
+let _singleLineBreakCheckbox
+let _typographyEnabledCheckbox
+let _enableEmojisCheckbox
+let _hideMetadataCheckbox
+let _dragDropAskRadioButton
+let _dragDropCurrentWindowRadioButton
+let _dragDropNewWindowRadioButton
+let _renderFileTypeAsMarkdownCheckbox
+let _fileHistorySizeInput
+let _showTocCheckbox
+let _showTocForDocumentCheckbox
+let _renderDocumentAsMarkdownCheckbox
+let _blockContentCheckbox
+let _blockContentCheckboxLabel
+let _perDocumentPositionRadioButton
+let _globalPositionRadioButton
+
+let _applicationSettings
+let _documentSettings
+let _filePath
+
+function parseRadioButtons(radioButtonMapping) {
+    return Object.entries(radioButtonMapping)
+        .filter(([, radioButton]) => radioButton.checked)
+        .map(([value]) => value)[0]
+}
+
+function updateTocForDocumentCheckbox() {
+    _showTocForDocumentCheckbox.checked =
+        _documentSettings.showTocOverridesAppSettings && _documentSettings.showToc
+}
+
+function updateMdFileTypeSetting(shallRenderAsMarkdown) {
+    const mdFileTypes = _applicationSettings.mdFileTypes
+    const ending = fileLib.extractFileEnding(_filePath)
+    if (shallRenderAsMarkdown) {
+        if (mdFileTypes.find(fileType => fileType === ending)) {
+            return
+        }
+        mdFileTypes.push(ending)
+        _applicationSettings.mdFileTypes = mdFileTypes
+    } else {
+        _applicationSettings.mdFileTypes = mdFileTypes.filter(fileType => fileType !== ending)
+    }
+}
+
+function styleblockContentCheckbox() {
+    const classList = _blockContentCheckboxLabel.classList
+    if (_blockContentCheckbox.checked) {
+        classList.remove(WARN_TEXT_CLASS)
+        classList.add(DISCOURAGE_CLASS)
+    } else {
+        classList.add(WARN_TEXT_CLASS)
+        classList.remove(DISCOURAGE_CLASS)
+    }
+}
+
+function populateDialog() {
+    ;({
+        system: _systemThemeRadioButton,
+        light: _lightThemeRadioButton,
+        dark: _darkThemeRadioButton,
+    })[_applicationSettings.theme].checked = true
+    _zoomInput.value = _applicationSettings.zoom
+    _singleLineBreakCheckbox.checked = _applicationSettings.lineBreaksEnabled
+    _typographyEnabledCheckbox.checked = _applicationSettings.typographyEnabled
+    _enableEmojisCheckbox.checked = _applicationSettings.emojisEnabled
+    _hideMetadataCheckbox.checked = _applicationSettings.hideMetadata
+    ;({
+        ask: _dragDropAskRadioButton,
+        "current-window": _dragDropCurrentWindowRadioButton,
+        "new-window": _dragDropNewWindowRadioButton,
+    })[_applicationSettings.dragDropBehavior].checked = true
+    _renderFileTypeAsMarkdownCheckbox.checked = _applicationSettings.mdFileTypes.some(fileType =>
+        _filePath.toLowerCase().endsWith(fileType),
+    )
+    _fileHistorySizeInput.value = _applicationSettings.fileHistorySize
+    _showTocCheckbox.checked = _applicationSettings.showToc
+    _blockContentCheckbox.checked = _applicationSettings.blockContent
+    if (_applicationSettings.windowPositionPerDocument) {
+        _perDocumentPositionRadioButton.checked = true
+    } else {
+        _globalPositionRadioButton.checked = true
+    }
+
+    // Document settings
+    updateTocForDocumentCheckbox()
+    _renderDocumentAsMarkdownCheckbox.checked = _documentSettings.renderAsMarkdown
+
+    // Setting dependent styling
+    styleblockContentCheckbox()
+}
+
+function setZoom(zoomFactor) {
+    _applicationSettings.zoom = zoomFactor
+
+    // Not implemented yet. ipc.send(ipc.messages.changeZoom, zoomFactor)
+}
+
+function store() {
+    // Application settings
+    _applicationSettings.theme = parseRadioButtons({
+        system: _systemThemeRadioButton,
+        light: _lightThemeRadioButton,
+        dark: _darkThemeRadioButton,
+    })
+    _applicationSettings.zoom = Number(_zoomInput.value)
+    _applicationSettings.lineBreaksEnabled = _singleLineBreakCheckbox.checked
+    _applicationSettings.typographyEnabled = _typographyEnabledCheckbox.checked
+    _applicationSettings.emojisEnabled = _enableEmojisCheckbox.checked
+    _applicationSettings.hideMetadata = _hideMetadataCheckbox.checked
+    _applicationSettings.dragDropBehavior = parseRadioButtons({
+        ask: _dragDropAskRadioButton,
+        "current-window": _dragDropCurrentWindowRadioButton,
+        "new-window": _dragDropNewWindowRadioButton,
+    })
+    updateMdFileTypeSetting(_renderFileTypeAsMarkdownCheckbox.checked)
+    _applicationSettings.fileHistorySize = Number(_fileHistorySizeInput.value)
+    _applicationSettings.showToc = _showTocCheckbox.checked
+    _applicationSettings.blockContent = _blockContentCheckbox.checked
+    _applicationSettings.windowPositionPerDocument = _perDocumentPositionRadioButton.checked
+
+    // Document settings
+    _documentSettings.showToc = _showTocForDocumentCheckbox.checked
+    _documentSettings.renderAsMarkdown = _renderDocumentAsMarkdownCheckbox.checked
+}
+
+function changeTab(tabIndex) {
+    const tabCount = _tabElements.length
+    for (let i = 0; i < tabCount; i++) {
+        const tabElement = _tabElements[i]
+        const tabContentElement = _tabContentElements[i]
+        if (i === tabIndex) {
+            tabElement.style.borderBottomStyle = "none"
+            tabElement.classList.remove(UNSELECTED_TAB_CLASS)
+            tabContentElement.style.display = "block"
+        } else {
+            tabElement.style.borderBottomStyle = "solid"
+            tabElement.classList.add(UNSELECTED_TAB_CLASS)
+            tabContentElement.style.display = "none"
+        }
+    }
+
+    renderer.removeShadows(_scrollContainer)
+    renderer.addBottomShadow(_scrollContainer, _tabContentElements[tabIndex])
+    renderer.preventNextScrollEvent()
+}
+
+function closeDialog() {
+    _dialogElement.close()
+    menu.setEnabled(menu.id.settings, true)
+}
+
+function handleConfirm(event) {
+    if (!_dialogForm.reportValidity()) {
+        return
+    }
+    event.preventDefault()
+    store()
+    dialog.close()
+}
+
+function handleKeyboardConfirm(event) {
+    if (event.key === "Enter") {
+        handleConfirm(event)
+    }
+}
+
+function setupLayout() {
+    const scrollContainerHeight = _scrollContainer.clientHeight
+
+    let tallest = 0
+    for (const tabContentElement of _tabContentElements) {
+        const contentStyle = tabContentElement.style
+
+        const oldDisplay = contentStyle.display
+        const oldPosition = contentStyle.position
+        const oldVisibility = contentStyle.visibility
+
+        contentStyle.display = "block"
+        contentStyle.position = "absolute"
+        contentStyle.visibility = "hidden"
+
+        const naturalHeight = tabContentElement.scrollHeight
+        if (naturalHeight > tallest) {
+            tallest = naturalHeight
+        }
+
+        contentStyle.display = oldDisplay
+        contentStyle.position = oldPosition
+        contentStyle.visibility = oldVisibility
+    }
+
+    const targetHeight = Math.min(scrollContainerHeight, tallest)
+    for (const tabContentElement of _tabContentElements) {
+        const computedStyle = _window.getComputedStyle(tabContentElement)
+        const padding =
+            parseFloat(computedStyle.paddingTop || 0) + parseFloat(computedStyle.paddingBottom || 0)
+
+        const contentStyle = tabContentElement.style
+        contentStyle.minHeight = `${targetHeight - padding}px`
+        contentStyle.maxHeight = `${scrollContainerHeight - padding}px`
+    }
+
+    renderer.setupShadows(_scrollContainer)
+}
+
+function reset() {
+    _applicationSettings = storage.loadApplicationSettings()
+    _documentSettings = storage.loadDocumentSettings()
+}
+
+exports.DIALOG_ID = DIALOG_ID
+
+exports.init = (document, window) => {
+    _document = document
+    _window = window
+    _dialogElement = _document.getElementById("settings-dialog")
+    _dialogForm = _document.getElementById("settings-dialog-form")
+
+    _systemThemeRadioButton = _document.getElementById("system-theme")
+    _lightThemeRadioButton = _document.getElementById("light-theme")
+    _darkThemeRadioButton = _document.getElementById("dark-theme")
+    _zoomInput = _document.getElementById("zoom")
+    _singleLineBreakCheckbox = _document.getElementById("single-line-break")
+    _typographyEnabledCheckbox = _document.getElementById("typographic-replacements")
+    _enableEmojisCheckbox = _document.getElementById("emoticons-to-emojis")
+    _hideMetadataCheckbox = _document.getElementById("hide-metadata")
+    _dragDropAskRadioButton = _document.getElementById("drag-drop-ask")
+    _dragDropCurrentWindowRadioButton = _document.getElementById("drag-drop-current-window")
+    _dragDropNewWindowRadioButton = _document.getElementById("drag-drop-new-window")
+    _renderFileTypeAsMarkdownCheckbox = _document.getElementById("render-filetype-as-markdown")
+    _fileHistorySizeInput = _document.getElementById("file-history-size")
+    _showTocCheckbox = _document.getElementById("show-toc")
+    _showTocForDocumentCheckbox = _document.getElementById("show-toc-for-doc")
+    _renderDocumentAsMarkdownCheckbox = _document.getElementById("render-doc-as-markdown")
+    _blockContentCheckbox = _document.getElementById("block-content")
+    _blockContentCheckboxLabel = _document.querySelector('label[for="block-content"]')
+    _perDocumentPositionRadioButton = _document.querySelector("input#per-document-position")
+    _globalPositionRadioButton = _document.querySelector("input#global-position")
+
+    _tabElements = [..._document.getElementsByClassName("dialog-tab")]
+    _tabContentElements = [..._document.getElementsByClassName("dialog-tab-content")]
+    _scrollContainer = _document.querySelector("div#settings-dialog-scroll-container")
+
+    reset()
+
+    const tabCount = _tabElements.length
+    for (let i = 0; i < tabCount; i++) {
+        _tabElements[i].onclick = () => changeTab(i)
+    }
+
+    _dialogElement.addEventListener("keydown", handleKeyboardConfirm)
+    _zoomInput.onkeydown = handleKeyboardConfirm
+    _fileHistorySizeInput.onkeydown = handleKeyboardConfirm
+    renderer.addStdButtonHandler(
+        _document.getElementById("reset-zoom-button"),
+        () => (_zoomInput.value = _applicationSettings.zoom = common.ZOOM_DEFAULT),
+    )
+    renderer.addStdButtonHandler(_document.getElementById("clear-file-history-button"), () =>
+        fileHistory.clear(),
+    )
+    renderer.addStdButtonHandler(_document.getElementById("forget-toc-override-button"), () => {
+        _documentSettings.showTocOverridesAppSettings = false
+        updateTocForDocumentCheckbox()
+    })
+    _showTocForDocumentCheckbox.onclick = () =>
+        (_documentSettings.showTocOverridesAppSettings = true)
+    _blockContentCheckbox.onclick = async () => {
+        if (
+            !_blockContentCheckbox.checked &&
+            !(await question.ask(
+                "No content loaded from the internet will be blocked! Proceed?",
+                "Circumvent content blocking",
+                "Continue content blocking",
+            ))
+        ) {
+            _blockContentCheckbox.checked = true
+            return
+        }
+        styleblockContentCheckbox()
+    }
+
+    _document.getElementById("settings-ok-button").addEventListener("click", handleConfirm)
+    renderer.addStdButtonHandler(_document.getElementById("settings-cancel-button"), dialog.close)
+    _document.getElementById("settings-apply-button").addEventListener("click", event => {
+        if (_dialogForm.reportValidity()) {
+            event.preventDefault()
+            store()
+        }
+    })
+}
+
+exports.setFilePath = filePath => (_filePath = filePath)
+
+exports.open = () =>
+    dialog.open(
+        DIALOG_ID,
+        () => {
+            populateDialog()
+
+            _dialogElement.showModal()
+            setupLayout()
+            changeTab(0)
+            _document.getElementById("settings-ok-button").focus()
+            menu.setEnabled(menu.id.settings, false)
+        },
+        closeDialog,
+    )
+
+exports.reset = reset
+
+exports.apply = () => {
+    contentBlocking.setShallBlockContent(_applicationSettings.blockContent)
+    setZoom(_applicationSettings.zoom)
+    toc.setVisibilityForApplication(_applicationSettings.showToc)
+    if (documentSettings.showTocOverridesAppSettings) {
+        toc.setVisibilityForDocument(documentSettings.showToc)
+    }
+    storage.loadFileHistory().updateSize()
+    fileHistory.updateMenu()
+}
+
+// For testing
+
+exports.getFilePath = () => _filePath

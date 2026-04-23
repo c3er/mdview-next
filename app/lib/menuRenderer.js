@@ -6,3 +6,5 @@ exports.id = shared.id
 
 exports.setEnabled = (id, isEnabled) =>
     ipc.send(ipc.messages.intern.setMenuItemEnabled, id, isEnabled)
+
+exports.update = () => {}

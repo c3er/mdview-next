@@ -9,6 +9,7 @@ const fileWatcher = require("./lib/fileWatcherMain")
 const ipc = require("./lib/ipcMain")
 const log = require("./lib/logMain")
 const menu = require("./lib/menuMain")
+const theme = require("./lib/themeMain")
 const windowManagement = require("./lib/windowManagementMain")
 
 let _ipcConnectionAttempts = ipc.extern.CONNECTION_ATTEMPTS
@@ -105,7 +106,8 @@ electron.app.whenReady().then(async () => {
     await log.init(cliArgs.logDir, _isMainProcess)
     menu.init()
     windowManagement.init(cli.defaults.filePath)
-    fileWatcher.init()
+    fileWatcher.init(cliArgs.storageDir)
+    theme.init()
 
     if (cliArgs.isTest) {
         log.debug("Called in test mode...")
