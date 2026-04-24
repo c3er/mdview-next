@@ -402,7 +402,7 @@ class FileHistory extends StorageBase {
 
     clear() {
         this.filePaths.length = 0
-        this.add(navigation.currentFilePath())
+        this.add(navigation.currentDocumentPath())
         this._save()
     }
 
@@ -524,7 +524,7 @@ exports.init = async (paths, electronMock, themeMock) => {
 exports.loadApplicationSettings = loadApplicationSettings
 
 exports.loadDocumentSettings = documentPath => {
-    documentPath ??= navigation.currentFilePath()
+    documentPath ??= navigation.currentDocumentPath()
     return (
         _documentSettings[documentPath] ??
         (_documentSettings[documentPath] = new DocumentSettings(

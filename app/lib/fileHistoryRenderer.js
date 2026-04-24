@@ -20,7 +20,7 @@ exports.init = (mainMenu, initialFilePath, electronMock) => {
 
     addFile(initialFilePath)
 
-    navigation.register(ADD_TO_FILE_HISTORY_NAV_ID, () => addFile(navigation.currentFilePath()))
+    navigation.register(ADD_TO_FILE_HISTORY_NAV_ID, () => addFile(navigation.currentDocumentPath()))
 }
 
 exports.clear = clear
