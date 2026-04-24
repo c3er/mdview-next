@@ -498,7 +498,10 @@ exports.elements = {
                     label: "De&bug",
                     sub: {
                         throwException: {
-                            label: "Throw e&xception",
+                            label: "Throw e&xception (main)",
+                        },
+                        throwException: {
+                            label: "Throw ex&ception (renderer)",
                         },
                         showError: {
                             label: "Show &error dialog",

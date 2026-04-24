@@ -26,6 +26,9 @@ exports.init = () => {
     handle(shared.id.print, () => log.debug('Menu entry "Print" called'))
     handle(shared.id.rawText, () => log.debug('Menu entry "Show Raw Text" called'))
     handle(shared.id.settings, () => settings.open())
+    handle(shared.id.throwError, message => {
+        throw new Error(message)
+    })
     handle(shared.id.tocForgetDocumentOverride, () =>
         log.debug('Menu entry "TOC -> Forget Document Override" called'),
     )

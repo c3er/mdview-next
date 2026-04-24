@@ -15,6 +15,7 @@ exports.id = {
     print: "print",
     rawText: "raw-text",
     settings: "settings",
+    throwError: "throw-error",
     tocForgetDocumentOverride: "toc-forget-Document-override",
     tocShowForAll: "toc-show-for-all",
     tocShowForThisDocument: "toc-show-for-this-document",

@@ -280,9 +280,15 @@ exports.create = window => {
                     label: "De&bug",
                     submenu: [
                         {
-                            label: "Throw e&xception",
+                            label: "Throw e&xception (main)",
                             click() {
                                 throw new Error("An exception")
+                            },
+                        },
+                        {
+                            label: "Throw ex&ception (renderer)",
+                            click() {
+                                sendToRenderer(window, shared.id.throwError, "An exception")
                             },
                         },
                         {

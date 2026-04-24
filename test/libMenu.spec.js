@@ -1,3 +1,5 @@
+const assert = require("assert")
+
 const lib = require("./testLib")
 const mocking = require("./mocking")
 
@@ -41,8 +43,14 @@ describe("Menu module", () => {
 
         describe("Handlers", () => {
             for (const menuId of Object.values(menuShared.id)) {
-                it(`handles menu entry "${menuId}`, () => {
-                    mocking.ipc.sendToRenderer(menuShared.ipcMessageId(menuId))
+                it(`handles menu entry "${menuId}"`, () => {
+                    try {
+                        mocking.ipc.sendToRenderer(menuShared.ipcMessageId(menuId))
+                    } catch (err) {
+                        if (menuId !== menuShared.id.throwError) {
+                            assert.fail(err)
+                        }
+                    }
                 })
             }
         })

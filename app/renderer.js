@@ -45,7 +45,18 @@ async function domContentLoadedHandler() {
     document.getElementById("loading-indicator").innerHTML = '<div id="loaded"></div>'
 }
 
+function errorHandler(event) {
+    try {
+        log.error(event.error)
+    } catch {
+        // Should stay the only case, where any error is swallowed without any handling.
+    }
+    return false
+}
+
 addEventListener("DOMContentLoaded", domContentLoadedHandler)
+
+addEventListener("error", errorHandler)
 
 onkeydown = event => {
     switch (event.key) {
