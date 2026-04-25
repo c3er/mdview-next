@@ -523,8 +523,8 @@ exports.init = async (paths, electronMock, themeMock) => {
 
 exports.loadApplicationSettings = loadApplicationSettings
 
-exports.loadDocumentSettings = documentPath => {
-    documentPath ??= navigation.currentDocumentPath()
+exports.loadDocumentSettings = () => {
+    const documentPath = navigation.currentDocumentPath()
     return (
         _documentSettings[documentPath] ??
         (_documentSettings[documentPath] = new DocumentSettings(
