@@ -189,6 +189,9 @@ class Electron {
             return "/just/a/test/path/"
         },
     }
+    nativeTheme = {
+        shouldUseDarkColors: false,
+    }
     ipcMain = {
         on(message, callback) {
             _ipcToMainChannels.addTarget(message, callback)

@@ -126,6 +126,7 @@ class Window {
 
     _createBrowserWindow() {
         const window = new electron.BrowserWindow({
+            backgroundColor: electron.nativeTheme.shouldUseDarkColors ? "#282a36" : "#fff",
             width: WINDOW_WIDTH_DEFAULT,
             height: WINDOW_HEIGHT_DEFAULT,
             webPreferences: {

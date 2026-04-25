@@ -135,6 +135,8 @@ class ApplicationSettings extends StorageBase {
     constructor(storagePath) {
         super(APPLICATION_SETTINGS_VERSION, storagePath)
         this._updateVersion()
+
+        theme.set(this.theme)
     }
 
     get theme() {
