@@ -3,12 +3,12 @@ const path = require("path")
 
 const hljs = require("highlight.js")
 
-const common = require("./common.js")
-const fileLib = require("./file.js")
-const log = require("./logRenderer.js")
-const navigation = require("./navigationRenderer.js")
-const search = require("./searchRenderer.js")
-const statusBar = require("./statusBarRenderer.js")
+const common = require("./common")
+const fileLib = require("./file")
+const log = require("./logRenderer")
+const navigation = require("./navigationRenderer")
+const search = require("./searchRenderer")
+const statusBar = require("./statusBarRenderer")
 
 let _markdown
 let _document
