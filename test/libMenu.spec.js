@@ -38,7 +38,6 @@ describe("Menu module", () => {
             storage.init(lib.STORAGE_PATHS, electronMock, mocking.createTheme())
 
             settings.init(documentMock, windowMock)
-            settings.setFilePath(lib.DEFAULT_DOCUMENT_PATH)
         })
 
         describe("Handlers", () => {

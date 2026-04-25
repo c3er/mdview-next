@@ -37,8 +37,6 @@ async function domContentLoadedHandler() {
     search.init(document, async () => await documentRendering.render(documentPath))
 
     navigation.register(location => title.updatePrefix(location.toString()))
-    settings.setFilePath(documentPath)
-
     renderer.contentElement().focus()
 
     // Needed for testing

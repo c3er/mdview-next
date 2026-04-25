@@ -4,6 +4,7 @@ const dialog = require("./dialogRenderer")
 const fileHistory = require("./fileHistoryRenderer")
 const fileLib = require("./file")
 const menu = require("./menuRenderer")
+const navigation = require("./navigationRenderer")
 const question = require("./questionRenderer")
 const renderer = require("./commonRenderer")
 const storage = require("./storageRenderer")
@@ -45,7 +46,6 @@ let _globalPositionRadioButton
 
 let _applicationSettings
 let _documentSettings
-let _filePath
 
 function parseRadioButtons(radioButtonMapping) {
     return Object.entries(radioButtonMapping)
@@ -60,7 +60,7 @@ function updateTocForDocumentCheckbox() {
 
 function updateMdFileTypeSetting(shallRenderAsMarkdown) {
     const mdFileTypes = _applicationSettings.mdFileTypes
-    const ending = fileLib.extractFileEnding(_filePath)
+    const ending = fileLib.extractFileEnding(navigation.currentDocumentPath())
     if (shallRenderAsMarkdown) {
         if (mdFileTypes.find(fileType => fileType === ending)) {
             return
@@ -100,7 +100,7 @@ function populateDialog() {
         "new-window": _dragDropNewWindowRadioButton,
     })[_applicationSettings.dragDropBehavior].checked = true
     _renderFileTypeAsMarkdownCheckbox.checked = _applicationSettings.mdFileTypes.some(fileType =>
-        _filePath.toLowerCase().endsWith(fileType),
+        navigation.currentDocumentPath().toLowerCase().endsWith(fileType),
     )
     _fileHistorySizeInput.value = _applicationSettings.fileHistorySize
     _showTocCheckbox.checked = _applicationSettings.showToc
@@ -319,8 +319,6 @@ exports.init = (document, window) => {
     })
 }
 
-exports.setFilePath = filePath => (_filePath = filePath)
-
 exports.open = () =>
     dialog.open(
         DIALOG_ID,
@@ -336,8 +334,6 @@ exports.open = () =>
         closeDialog,
     )
 
-exports.reset = reset
-
 exports.apply = () => {
     contentBlocking.setShallBlockContent(_applicationSettings.blockContent)
     setZoom(_applicationSettings.zoom)
@@ -348,7 +344,3 @@ exports.apply = () => {
     storage.loadFileHistory().updateSize()
     fileHistory.updateMenu()
 }
-
-// For testing
-
-exports.getFilePath = () => _filePath
