@@ -118,7 +118,7 @@ describe("Process handling", () => {
         assert.strictEqual(proc.exitCode, 0)
     }
 
-    beforeEach(async () => await cleanup())
+    beforeEach(() => cleanup())
 
     it("spawns main process", async () => {
         const startedProcess = startProcess()
@@ -194,7 +194,7 @@ describe("Integration tests with single app instance", () => {
         await startApp()
     })
 
-    after(async () => await _app.close())
+    after(() => _app.close())
 
     it("opens a window", () => {
         assert(Boolean(_page))

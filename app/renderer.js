@@ -34,7 +34,7 @@ async function domContentLoadedHandler() {
     await title.init(document, documentPath)
     navigation.init(document, documentPath)
     settings.init(document, window)
-    search.init(document, async () => await documentRendering.render(documentPath))
+    search.init(document, () => documentRendering.render(documentPath))
 
     navigation.register(location => title.updatePrefix(location.toString()))
     renderer.contentElement().focus()

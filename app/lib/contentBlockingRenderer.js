@@ -48,8 +48,8 @@ function hasBlockedElements() {
     return !common.isEmptyObject(_blockedElements)
 }
 
-async function notifyUrlUnblocked(url) {
-    await ipc.invoke(ipc.messages.intern.unblockURL, url)
+function notifyUrlUnblocked(url) {
+    ipc.invoke(ipc.messages.intern.unblockURL, url)
 }
 
 function unblockURL(url) {

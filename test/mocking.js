@@ -207,8 +207,8 @@ class Electron {
         send(message, ...args) {
             _ipcToMainChannels.send(message, _electronIpcEvent, ...args)
         },
-        async invoke(message, ...args) {
-            return await _ipcToMainChannels.invoke(message, _electronIpcEvent, ...args)
+        invoke(message, ...args) {
+            return _ipcToMainChannels.invoke(message, _electronIpcEvent, ...args)
         },
     }
 

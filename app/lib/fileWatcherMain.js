@@ -24,12 +24,12 @@ class Subscription {
         return Object.keys(this.fileModificationTimes)
     }
 
-    async add(filePath) {
-        await this._update(filePath)
+    add(filePath) {
+        this._update(filePath)
     }
 
-    async update(filePath) {
-        await this._update(filePath)
+    update(filePath) {
+        this._update(filePath)
     }
 
     async isModified(filePath) {

@@ -30,7 +30,7 @@ exports.STORAGE_PATHS = {
     fileHistory: path.join(DATA_DIR, storageConstants.FILE_HISTORY_FILE),
 }
 
-exports.removeData = async () => await fs.rm(DATA_DIR, { force: true, recursive: true })
+exports.removeData = () => fs.rm(DATA_DIR, { force: true, recursive: true })
 
 exports.registerElectronLogIpc = () => mocking.ipc.register.mainOn("__ELECTRON_LOG__")
 
