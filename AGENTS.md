@@ -35,6 +35,26 @@ Use this as the expected workflow:
 
 This repo should not be treated as a place where agents are rewarded for “just making it pass.” It is a long-lived replacement project, and deliberate refactoring is part of the job when it genuinely improves maintainability.
 
+## Testing and validation
+
+Agents should not assume that automated tests cover all meaningful behavior. This project includes user-facing behavior that often needs a quick manual smoke check, especially around:
+
+- opening files and recent-file history
+- relative links, images, and local media
+- search, TOC, and navigation
+- settings persistence and application startup theme
+- reload behavior after file changes
+- content blocking and external resource handling
+
+The expected workflow is:
+
+1. Run the smallest relevant automated test or suite first.
+2. If the change affects user-visible behavior, propose a short manual validation plan with concrete steps.
+3. When a manual check is needed, spell out the exact action sequence the human reviewer should perform.
+4. Do not treat “tests passed” as proof that the UX is acceptable if the feature is visually or behaviorally manual in nature.
+
+This is especially important for UI and rendering changes. The agent should explicitly state what to test, not silently assume that a green automated run is enough.
+
 ## What this repo is trying to replace
 
 The legacy repo is still the source of truth for what users expect:
