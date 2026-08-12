@@ -15,6 +15,26 @@ The guiding principle is: keep the old app as the behavioral reference, but impl
 - Avoid cross-cutting global state unless it is truly required.
 - Do not “improve” a feature just because it looks cleaner; preserve existing behavior first.
 
+## AI operating rules
+
+This project is meant to be maintained by agents that think in terms of deliberate improvement, not the cheapest possible patch.
+
+The governing rule is:
+
+- behavior comes first
+- testability and clarity are the second-order goals
+- refactoring is allowed when it reduces risk, improves ownership boundaries, or makes a bug fix trustworthy
+
+Use this as the expected workflow:
+
+1. Verify the behavior against the legacy app and the current tests.
+2. Keep the change as small as possible while preserving the intended UX.
+3. If a refactor is needed to make the fix safe, isolate it and keep it behavior-preserving.
+4. Prefer explicit modules and contracts over hidden magic.
+5. If a feature area is historically fragile (navigation, path handling, encoding, rendering, settings), give it extra review before broad simplification.
+
+This repo should not be treated as a place where agents are rewarded for “just making it pass.” It is a long-lived replacement project, and deliberate refactoring is part of the job when it genuinely improves maintainability.
+
 ## What this repo is trying to replace
 
 The legacy repo is still the source of truth for what users expect:
