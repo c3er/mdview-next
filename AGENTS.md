@@ -6,6 +6,8 @@ This repository is the refactored successor to the legacy Markdown Viewer. It is
 
 The guiding principle is: keep the old app as the behavioral reference, but implement it in smaller, testable modules and more explicit boundaries.
 
+The legacy behavioral oracle is expected at `../mdview`, relative to this repository. Verify that this path exists and is a Git repository at the beginning of every session in which legacy behavior may be relevant. If it is not available there, ask the user for the path to the legacy project before relying on it.
+
 ## Working style for this repo
 
 - Prefer small, incremental steps over broad rewrite passes.
@@ -14,6 +16,8 @@ The guiding principle is: keep the old app as the behavioral reference, but impl
 - Keep module boundaries explicit: main-process concerns stay in `app/lib/*Main.js`, renderer concerns stay in `*Renderer.js`.
 - Avoid cross-cutting global state unless it is truly required.
 - Do not “improve” a feature just because it looks cleaner; preserve existing behavior first.
+- When the requirements or next steps are unclear, ask the user for clarification before making a consequential choice.
+- When multiple approaches are plausible and none is clearly best according to the existing behavior, architecture, or history, ask the user to choose between them.
 
 ## AI operating rules
 
@@ -35,6 +39,10 @@ Use this as the expected workflow:
 
 This repo should not be treated as a place where agents are rewarded for “just making it pass.” It is a long-lived replacement project, and deliberate refactoring is part of the job when it genuinely improves maintainability.
 
+## Documentation maintenance
+
+Documentation is part of the implementation and must always describe the current state. Keep `README.md`, `CONTRIBUTING.md`, everything under `doc/`, `AGENTS.md`, and any skills or other AI guidance up to date. Any code change that makes a documented statement inaccurate must update that documentation in the same change. AI guidance is especially important: do not leave obsolete instructions, architecture descriptions, workflows, or feature claims behind.
+
 ## Testing and validation
 
 Agents should not assume that automated tests cover all meaningful behavior. This project includes user-facing behavior that often needs a quick manual smoke check, especially around:
@@ -55,6 +63,16 @@ The expected workflow is:
 
 This is especially important for UI and rendering changes. The agent should explicitly state what to test, not silently assume that a green automated run is enough.
 
+## Version control
+
+This project uses Git. Use read-only Git operations freely whenever the current code, its motivation, or the history of a decision is unclear. In particular, use commands such as `git log`, `git show`, `git blame`, and diffs to understand behavior, ownership, and the reason for existing code.
+
+Git write operations require explicit user approval before they are performed. This includes `git commit`, `git merge`, `git rebase`, and comparable history- or worktree-changing operations. Before asking for approval, explain what will be changed and why; include the exact proposed commit message when a commit is involved. After approval, use the agreed commit message verbatim. If the user proposes a commit-message change, verify the intended wording and resolve any discrepancy before writing it.
+
+Commit messages must provide enough context, together with their diffs, to understand the motivation for the change. Use a concise header line, normally no longer than 52 characters, followed by a blank line and an explanation. Body lines should normally not exceed 72 characters. Unbreakable strings such as URLs are exceptions; put each such long string on its own line, not necessarily in its own paragraph. The header does not need a `feat:`, `fix:`, or similar prefix. The explanation should focus on the motivation and, where it is not obvious, the relevant technical or architectural background; it should not merely repeat the diff. Keep the message as short as is sensible: a small change may need only a short title, while a more involved change needs an informative explanation.
+
+Never run `git push`. Tell the user to perform pushes themselves.
+
 ## What this repo is trying to replace
 
 The legacy repo is still the source of truth for what users expect:
@@ -74,7 +92,7 @@ This repo’s job is to deliver those behaviors with a cleaner architecture and 
 
 ### 1. Main process and startup
 
-The main process owns OS-level concerns and lifecycle:
+Keep the main process as lean as possible. Put necessary complexity into renderer modules when it belongs to document or UI behavior. The main process should generally do only what cannot or should not be done by a renderer: boot the application, manage browser windows, set up IPC, and synchronize state between windows when necessary.
 
 - `app/main.js`: process bootstrap, CLI handling, app startup, IPC setup, logging, file-watcher wiring, menu initialization, and window management.
 - `app/lib/cliMain.js`: command-line parsing and startup mode selection.
@@ -83,9 +101,11 @@ The main process owns OS-level concerns and lifecycle:
 - `app/lib/menuMain.js`: menu structure and enable/disable behavior.
 - `app/lib/logMain.js` and `app/lib/logShared.js`: logging setup and shared conventions.
 
-The key design goal is: the main process owns app lifecycle, browser windows, OS integration, and stateful coordination; the renderer process owns the DOM, document reads, and rendering of the current Markdown file.
+The key design goal is: the main process owns application bootstrapping, browser-window lifecycle, IPC, and necessary cross-window coordination; the renderer process owns the DOM, document reads, and rendering of the current Markdown file. Do not move renderer-owned document work into the main process merely because the main process can access the filesystem.
 
 This is an important boundary: file watchers run in the main process to detect changes, but the actual read and re-render of the changed document happens in the renderer that owns that window.
+
+The file watcher is an intentional exception to the usual lean-main-process rule. Each browser window could poll for changes independently, but the main process polls once per second and notifies all affected renderer processes. This avoids duplicate polling work and is gentler on the operating system while keeping document reads and rendering in the owning renderer.
 
 ### 2. IPC boundary
 
