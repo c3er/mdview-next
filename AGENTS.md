@@ -43,6 +43,8 @@ This repo should not be treated as a place where agents are rewarded for “just
 
 Documentation is part of the implementation and must always describe the current state. Keep `README.md`, `CONTRIBUTING.md`, everything under `doc/`, `AGENTS.md`, and any skills or other AI guidance up to date. Any code change that makes a documented statement inaccurate must update that documentation in the same change. AI guidance is especially important: do not leave obsolete instructions, architecture descriptions, workflows, or feature claims behind.
 
+Project skills belong under `skills/<skill name>/SKILL.md`. Discover and consult a relevant skill when its description matches the task; do not place project skills in agent-specific directories. The testing workflow is documented in `skills/testing/SKILL.md`.
+
 ## Testing and validation
 
 Agents should not assume that automated tests cover all meaningful behavior. This project includes user-facing behavior that often needs a quick manual smoke check, especially around:
