@@ -102,11 +102,14 @@ describe("Process handling", () => {
         }
     }
 
-    function destroyProcess(proc) {
+    async function destroyProcess(proc) {
         proc.stderr.destroy()
         proc.stdout.destroy()
         proc.stdin.destroy()
-        proc.kill("SIGKILL")
+        if (proc.exitCode === null && proc.signalCode === null) {
+            proc.kill("SIGTERM")
+            await new Promise(resolve => proc.once("exit", resolve))
+        }
     }
 
     function findLogEntries(logEntries, pattern) {
@@ -131,7 +134,7 @@ describe("Process handling", () => {
 
             process.kill(Number(mainProcessMessage.split(" ").at(-1)))
         } finally {
-            destroyProcess(startedProcess)
+            await destroyProcess(startedProcess)
         }
     })
 
@@ -182,8 +185,10 @@ describe("Process handling", () => {
                 }),
             )
         } finally {
-            process.kill(mainPid, "SIGKILL")
-            destroyProcess(startedProcess)
+            if (mainPid && processExists(mainPid)) {
+                process.kill(mainPid, "SIGTERM")
+            }
+            await destroyProcess(startedProcess)
         }
     })
 })
@@ -194,7 +199,10 @@ describe("Integration tests with single app instance", () => {
         await startApp()
     })
 
-    after(() => _app.close())
+    after(async () => {
+        await _app.evaluate(({ app }) => app.quit())
+        await _app.close()
+    })
 
     it("opens a window", () => {
         assert(Boolean(_page))
