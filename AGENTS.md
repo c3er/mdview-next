@@ -65,6 +65,49 @@ The expected workflow is:
 
 This is especially important for UI and rendering changes. The agent should explicitly state what to test, not silently assume that a green automated run is enough.
 
+## Running the application
+
+Check the current operating system at the start of every session, no later than before the first runtime command is executed.
+
+- If the current platform is macOS or Linux, the Unix launcher is the default supported path.
+- If the current platform is Windows, do not assume the repo is already configured for it. Ask the user before extending the skills or using `run.ps1` or any Windows-specific startup flow.
+- Do not silently mix Unix and Windows assumptions. The current repository guidance is explicitly Unix-oriented.
+
+The project may be started manually for runtime verification, but only with explicit user approval first.
+
+- Always ask the user for confirmation before running the app.
+- Explain what command will be run, why it is needed, and what the user should watch in the console or UI.
+- If the goal is to observe a specific behavior, describe that scenario before starting it.
+- When using the app as a verification tool, treat the console output as part of the evidence.
+
+The Unix development launcher is:
+
+```sh
+./run.sh
+```
+
+This is the supported local-development way to start the app in this repository. Ignore `run.ps1` and anything Windows-specific unless a later skill or setup explicitly covers those paths.
+
+If the user later works again on Windows, ask for permission to extend the relevant skills and commands to cover that environment before using any Windows-specific instructions.
+
+The current implementation confirms the following:
+
+- `run.sh` is a thin wrapper around `node scripts/run.js -- $*`
+- `scripts/run.js` executes `npm start -- ...`
+- it blocks the console while monitoring `logs/main.log`
+- it streams log output in a `tail -f`-like fashion with colorized log lines
+- without arguments, the app opens the default file `README.md`
+- the repo also contains `test/documents/default.md`, which is a good place to extend with a reproducible rendering example when a fix needs a specific markdown case
+
+Because the app uses a starter/server bootstrap, do not assume a simple single-process startup:
+
+- a short starter process checks whether another app instance is already running
+- if so, it forwards the file to open to that active server process and exits
+- otherwise it starts the server process and then exits itself
+- the server process owns the actual Electron window lifecycle
+
+This startup pattern is important for runtime verification and should be respected when changing startup or window-opening code.
+
 ## Version control
 
 This project uses Git. Use read-only Git operations freely whenever the current code, its motivation, or the history of a decision is unclear. In particular, use commands such as `git log`, `git show`, `git blame`, and diffs to understand behavior, ownership, and the reason for existing code.
