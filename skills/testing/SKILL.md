@@ -27,6 +27,8 @@ env -u ELECTRON_RUN_AS_NODE npm run test-all
 
 The `env -u ELECTRON_RUN_AS_NODE` prefix is required in the VS Code terminal environment used for this project. Without it, Electron may be started in Node mode and reject Playwright's launch arguments.
 
+This command is currently Unix/macOS/Linux-oriented and depends on the Unix shell semantics of `env`. If the user is later working on Windows, ask for permission to extend this skill and the related startup guidance for that platform before using Windows-specific variants or commands.
+
 This command also runs ESLint and the Prettier check before the tests.
 
 Always ask the user for approval immediately before executing this command. It can open windows and otherwise distract the person in front of the screen. Do not treat approval for an earlier E2E run as approval for a later run.
